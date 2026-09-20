@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/utils/avatar_helper.dart';
 import '../../../core/utils/map_launcher.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../cars/models/car.dart';
@@ -202,9 +203,7 @@ class BoardCarCard extends StatelessWidget {
                         CircleAvatar(
                           radius: 14,
                           backgroundColor: theme.colorScheme.secondaryContainer,
-                          backgroundImage: car.ownerPhotoUrl != null && car.ownerPhotoUrl!.isNotEmpty
-                              ? NetworkImage(car.ownerPhotoUrl!)
-                              : null,
+                          backgroundImage: AvatarHelper.getImageProvider(car.ownerPhotoUrl),
                           child: car.ownerPhotoUrl == null || car.ownerPhotoUrl!.isEmpty
                               ? Text(
                                   car.ownerName.isNotEmpty ? car.ownerName[0].toUpperCase() : 'O',

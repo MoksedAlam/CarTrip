@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../../core/utils/avatar_helper.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
@@ -44,8 +47,130 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 75,
+      );
+      if (pickedFile == null) return;
+
+      final bytes = await pickedFile.readAsBytes();
+      final base64String = base64Encode(bytes);
+      final dataUri = 'data:image/jpeg;base64,$base64String';
+
+      setState(() {
+        _photoUrlController.text = dataUri;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Photo selected! Tap "Save Changes" to apply.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick photo: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showPhotoOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const Text(
+                'Change Profile Photo',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFE8F5E9),
+                  child: Icon(Icons.camera_alt_rounded, color: Colors.green),
+                ),
+                title: const Text('Take Photo with Camera'),
+                subtitle: const Text('Capture using device camera'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFE3F2FD),
+                  child: Icon(Icons.photo_library_rounded, color: Colors.blue),
+                ),
+                title: const Text('Choose from Gallery'),
+                subtitle: const Text('Select existing photo from device'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFEDE7F6),
+                  child: Icon(Icons.link_rounded, color: Colors.deepPurple),
+                ),
+                title: const Text('Image URL or Preset Avatar'),
+                subtitle: const Text('Paste web link or pick ready avatar'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showPhotoDialog();
+                },
+              ),
+              if (_photoUrlController.text.trim().isNotEmpty) ...[
+                const Divider(),
+                ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFFFFEBEE),
+                    child: Icon(Icons.delete_outline_rounded, color: Colors.red),
+                  ),
+                  title: const Text('Remove Photo', style: TextStyle(color: Colors.red)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() => _photoUrlController.clear());
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _showPhotoDialog() async {
-    final tempController = TextEditingController(text: _photoUrlController.text);
+    final tempController = TextEditingController(text: _photoUrlController.text.startsWith('data:') ? '' : _photoUrlController.text);
     final presets = [
       'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
       'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150',
@@ -56,7 +181,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Profile Photo'),
+        title: const Text('Profile Photo URL / Presets'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -179,7 +304,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: theme.colorScheme.primaryContainer,
-                        backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
+                        backgroundImage: photo.isNotEmpty ? AvatarHelper.getImageProvider(photo) : null,
                         child: photo.isEmpty
                             ? Text(
                                 _nameController.text.isNotEmpty ? _nameController.text[0].toUpperCase() : 'U',
@@ -192,7 +317,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             : null,
                       ),
                       InkWell(
-                        onTap: _showPhotoDialog,
+                        onTap: _showPhotoOptions,
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -208,7 +333,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextButton.icon(
-                  onPressed: _showPhotoDialog,
+                  onPressed: _showPhotoOptions,
                   icon: const Icon(Icons.photo_camera_outlined, size: 16),
                   label: const Text('Change Photo'),
                 ),

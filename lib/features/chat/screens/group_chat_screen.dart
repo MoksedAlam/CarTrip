@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/utils/avatar_helper.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_view.dart';
@@ -240,7 +241,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
             CircleAvatar(
               radius: 16,
               backgroundColor: theme.colorScheme.primaryContainer,
-              backgroundImage: photoUrl != null && photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+              backgroundImage: AvatarHelper.getImageProvider(photoUrl),
               child: photoUrl == null || photoUrl.isEmpty
                   ? Text(
                       msg.senderName.isNotEmpty ? msg.senderName[0].toUpperCase() : 'U',
@@ -375,7 +376,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
             CircleAvatar(
               radius: 16,
               backgroundColor: theme.colorScheme.primary,
-              backgroundImage: photoUrl != null && photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+              backgroundImage: AvatarHelper.getImageProvider(photoUrl),
               child: photoUrl == null || photoUrl.isEmpty
                   ? Text(
                       currentUser?.name.isNotEmpty == true ? currentUser!.name[0].toUpperCase() : 'ME',

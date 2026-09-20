@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/avatar_helper.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/loading_view.dart';
@@ -268,9 +269,7 @@ class _AdminReportsViewState extends ConsumerState<AdminReportsView> {
                     CircleAvatar(
                       radius: 20,
                       backgroundColor: theme.colorScheme.primaryContainer,
-                      backgroundImage: owner.photoUrl != null && (owner.photoUrl as String).isNotEmpty
-                          ? NetworkImage(owner.photoUrl as String)
-                          : null,
+                      backgroundImage: AvatarHelper.getImageProvider(owner.photoUrl),
                       child: owner.photoUrl == null || (owner.photoUrl as String).isEmpty
                           ? Text(
                               owner.name.isNotEmpty ? owner.name[0].toUpperCase() : 'O',

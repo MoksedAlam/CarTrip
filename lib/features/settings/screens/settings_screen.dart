@@ -85,43 +85,6 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _handleDeleteAccount(BuildContext context, WidgetRef ref) async {
-    final user = ref.read(currentUserDocProvider).value;
-    if (user == null) return;
-
-    final step1 = await ConfirmDialog.show(
-      context: context,
-      title: 'Delete Account & All Data',
-      content: 'Are you sure you want to permanently delete your account, cars, trips, and expenses? This cannot be undone.',
-      confirmLabel: 'Continue',
-      isDestructive: true,
-    );
-
-    if (!step1) return;
-
-    if (!context.mounted) return;
-    final step2 = await ConfirmDialog.show(
-      context: context,
-      title: 'Final Confirmation',
-      content: 'All your records will be permanently erased. Proceed with deletion?',
-      confirmLabel: 'Delete Permanently',
-      isDestructive: true,
-    );
-
-    if (!step2) return;
-
-    try {
-      await ref.read(userRepositoryProvider).deleteAccountAndData(user.uid);
-      await ref.read(authControllerProvider.notifier).signOut();
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting account: $e')),
-        );
-      }
-    }
-  }
-
   Future<void> _handleCheckUpdate(BuildContext context, WidgetRef ref) async {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -275,16 +238,6 @@ class SettingsScreen extends ConsumerWidget {
               }
             },
           ),
-          if (user?.role == UserRoles.owner)
-            ListTile(
-              leading: Icon(Icons.delete_forever_rounded, color: theme.colorScheme.error),
-              title: Text(
-                'Delete Account & Data',
-                style: TextStyle(color: theme.colorScheme.error),
-              ),
-              subtitle: const Text('Permanently erase all vehicle and trip records'),
-              onTap: () => _handleDeleteAccount(context, ref),
-            ),
         ],
       ),
     );

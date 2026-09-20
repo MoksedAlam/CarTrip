@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/services/location_service.dart';
 import '../../core/widgets/car_trip_nav_bar.dart';
 import '../../core/widgets/offline_banner.dart';
 
@@ -15,6 +16,16 @@ class DriverShell extends StatefulWidget {
 
 class _DriverShellState extends State<DriverShell> {
   DateTime? _lastBackPressTime;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        LocationService().checkAndRequestPermission();
+      } catch (_) {}
+    });
+  }
 
   void _handleBackPress() {
     if (widget.navigationShell.currentIndex != 0) {

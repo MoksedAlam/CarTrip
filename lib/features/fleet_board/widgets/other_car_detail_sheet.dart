@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/utils/avatar_helper.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../cars/models/car.dart';
@@ -197,9 +198,7 @@ class OtherCarDetailSheet extends StatelessWidget {
             leading: CircleAvatar(
               radius: 20,
               backgroundColor: theme.colorScheme.primaryContainer,
-              backgroundImage: car.ownerPhotoUrl != null && car.ownerPhotoUrl!.isNotEmpty
-                  ? NetworkImage(car.ownerPhotoUrl!)
-                  : null,
+              backgroundImage: AvatarHelper.getImageProvider(car.ownerPhotoUrl),
               child: car.ownerPhotoUrl == null || car.ownerPhotoUrl!.isEmpty
                   ? Text(
                       car.ownerName.isNotEmpty ? car.ownerName[0].toUpperCase() : 'O',

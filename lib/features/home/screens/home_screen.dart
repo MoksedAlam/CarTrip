@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/location_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/month_key.dart';
@@ -31,7 +32,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkUpdate());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkUpdate();
+      _checkLocationPermission();
+    });
+  }
+
+  Future<void> _checkLocationPermission() async {
+    try {
+      final loc = ref.read(locationServiceProvider);
+      final hasPerm = await loc.checkAndRequestPermission();
+      if (hasPerm) {
+        loc.getCurrentLocation();
+      }
+    } catch (_) {}
   }
 
   Future<void> _checkUpdate() async {
