@@ -41,5 +41,10 @@ service cloud.firestore {
       allow read, create: if signedIn();
       allow update, delete: if isSuperAdmin();
     }
+
+    match /app_config/{docId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
   }
 }
