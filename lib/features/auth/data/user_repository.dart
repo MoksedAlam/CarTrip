@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/firestore_paths.dart';
 import '../models/app_user.dart';
 
@@ -59,6 +60,8 @@ class UserRepository {
       'phone': phone.trim(),
       'area': area.trim(),
       'upiId': (upiId != null && upiId.trim().isNotEmpty) ? upiId.trim() : null,
+      'role': UserRoles.owner,
+      'status': UserStatuses.active,
       'registrationSubmitted': true,
       'declarationAccepted': true,
       'declarationAt': Timestamp.fromDate(now),

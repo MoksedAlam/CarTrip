@@ -4,58 +4,37 @@ service cloud.firestore {
 
     function signedIn() { return request.auth != null; }
     function myDoc() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
-    function isSuperAdmin()  { return signedIn() && myDoc().role == 'superAdmin' && myDoc().status == 'active'; }
-    function isActiveOwner() { return signedIn() && myDoc().role == 'owner' && myDoc().status == 'active'; }
-    function isActiveDriver(){ return signedIn() && myDoc().role == 'driver' && myDoc().status == 'active'; }
-    function isMember()      { return isSuperAdmin() || isActiveOwner() || isActiveDriver(); }
-    function ownsCar(carId)  { return get(/databases/$(database)/documents/cars/$(carId)).data.ownerId == request.auth.uid; }
+    function isSuperAdmin()  { return signedIn() && myDoc().role == 'superAdmin'; }
+    function isMember()      { return signedIn(); }
 
     match /users/{uid} {
-      allow read: if signedIn() && (request.auth.uid == uid || isSuperAdmin());
-      allow create: if signedIn() && request.auth.uid == uid
-                    && request.resource.data.role == 'pending'
-                    && request.resource.data.status == 'pending';
-      // Users may edit only harmless profile fields. Role/status: Super Admin only.
-      allow update: if isSuperAdmin() ||
-        (signedIn() && request.auth.uid == uid &&
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(
-           ['name','phone','area','upiId','showPhoneOnBoard',
-            'registrationSubmitted','declarationAccepted','declarationAt','updatedAt']));
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.auth.uid == uid;
       allow delete: if signedIn() && (request.auth.uid == uid || isSuperAdmin());
     }
 
     match /cars/{carId} {
-      allow read: if isMember();
-      allow create: if isActiveOwner() && request.resource.data.ownerId == request.auth.uid;
-      allow update: if isSuperAdmin() ||
-        (isActiveOwner() && resource.data.ownerId == request.auth.uid
-         && request.resource.data.ownerId == resource.data.ownerId);
-      allow delete: if isSuperAdmin() ||
-        (isActiveOwner() && resource.data.ownerId == request.auth.uid);
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isSuperAdmin() || (signedIn() && resource.data.ownerId == request.auth.uid);
     }
 
     match /carPrivate/{carId} {
-      allow read: if isActiveOwner() && resource.data.ownerId == request.auth.uid;
-      allow create: if isActiveOwner() && request.resource.data.ownerId == request.auth.uid;
-      allow update, delete: if isActiveOwner() && resource.data.ownerId == request.auth.uid
-                            && request.resource.data.ownerId == resource.data.ownerId;
+      allow read: if signedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.ownerId == request.auth.uid;
     }
 
     match /trips/{tripId} {
-      allow read: if isActiveOwner() && resource.data.ownerId == request.auth.uid;
-      allow create: if isActiveOwner() && request.resource.data.ownerId == request.auth.uid
-                    && ownsCar(request.resource.data.carId);
-      allow update: if isActiveOwner() && resource.data.ownerId == request.auth.uid
-                    && request.resource.data.ownerId == resource.data.ownerId;
-      allow delete: if isActiveOwner() && resource.data.ownerId == request.auth.uid;
+      allow read: if signedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.ownerId == request.auth.uid;
     }
 
     match /expenses/{expenseId} {
-      allow read: if isActiveOwner() && resource.data.ownerId == request.auth.uid;
-      allow create: if isActiveOwner() && request.resource.data.ownerId == request.auth.uid
-                    && ownsCar(request.resource.data.carId);
-      allow update, delete: if isActiveOwner() && resource.data.ownerId == request.auth.uid
-                            && request.resource.data.ownerId == resource.data.ownerId;
+      allow read: if signedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.ownerId == request.auth.uid;
     }
   }
 }

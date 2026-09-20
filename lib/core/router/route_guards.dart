@@ -43,17 +43,12 @@ class RouteGuards {
       return currentPath == registerPath ? null : registerPath;
     }
 
-    // 5. Status is pending approval
-    if (userDoc.status == UserStatuses.pending) {
-      return currentPath == pendingPath ? null : pendingPath;
-    }
-
-    // 6. Status is rejected or disabled
+    // 5. Status is rejected or disabled only
     if (userDoc.status == UserStatuses.rejected || userDoc.status == UserStatuses.disabled) {
       return currentPath == blockedPath ? null : blockedPath;
     }
 
-    // 7. Role-based routing for active users
+    // 6. Role-based routing
     if (userDoc.role == UserRoles.superAdmin) {
       // Super admin can access admin routes and settings
       if (currentPath.startsWith('/admin') || currentPath.startsWith('/settings')) {
@@ -62,19 +57,7 @@ class RouteGuards {
       return adminApprovalsPath;
     }
 
-    if (userDoc.role == UserRoles.owner && userDoc.status == UserStatuses.active) {
-      // Owner can access owner routes, car routes, trip routes, expense routes, and settings
-      if (currentPath.startsWith('/owner') ||
-          currentPath.startsWith('/settings') ||
-          currentPath.startsWith('/cars') ||
-          currentPath.startsWith('/trips') ||
-          currentPath.startsWith('/expenses')) {
-        return null;
-      }
-      return ownerHomePath;
-    }
-
-    if (userDoc.role == UserRoles.driver && userDoc.status == UserStatuses.active) {
+    if (userDoc.role == UserRoles.driver) {
       // Driver can access driver routes and settings
       if (currentPath.startsWith('/driver') || currentPath.startsWith('/settings')) {
         return null;
@@ -82,7 +65,15 @@ class RouteGuards {
       return driverFleetPath;
     }
 
-    // Fallback if role is unassigned or invalid
-    return loginPath;
+    // Default for all owners and general users: direct access to owner home
+    if (currentPath.startsWith('/owner') ||
+        currentPath.startsWith('/settings') ||
+        currentPath.startsWith('/cars') ||
+        currentPath.startsWith('/trips') ||
+        currentPath.startsWith('/expenses') ||
+        currentPath.startsWith('/fleet-board')) {
+      return null;
+    }
+    return ownerHomePath;
   }
 }

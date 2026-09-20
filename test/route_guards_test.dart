@@ -52,7 +52,7 @@ void main() {
       expect(dest2, RouteGuards.registerPath);
     });
 
-    test('Pending status redirects to pending screen', () {
+    test('Pending or new users get direct access to owner home', () {
       final dest = RouteGuards.guard(
         isAuthInitialized: true,
         isSignedIn: true,
@@ -66,7 +66,7 @@ void main() {
         ),
         currentPath: '/owner/home',
       );
-      expect(dest, RouteGuards.pendingPath);
+      expect(dest, isNull);
     });
 
     test('Rejected or disabled status redirects to blocked screen', () {
