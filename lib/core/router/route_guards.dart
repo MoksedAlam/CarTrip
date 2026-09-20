@@ -8,6 +8,7 @@ class RouteGuards {
   static const String pendingPath = '/pending';
   static const String blockedPath = '/blocked';
   static const String ownerHomePath = '/owner/home';
+  static const String ownerConsolePath = '/owner/console';
   static const String driverFleetPath = '/driver/fleet';
   static const String adminApprovalsPath = '/admin/approvals';
 
@@ -45,9 +46,11 @@ class RouteGuards {
 
     // 5. Super admin bypasses pending and blocked checks
     if (userDoc.role == UserRoles.superAdmin) {
-      // Super admin has full owner capabilities + admin privileges
-      if (currentPath.startsWith('/admin') ||
-          currentPath.startsWith('/owner') ||
+      // Direct all admin routes into the unified Super Admin Console in OwnerShell
+      if (currentPath.startsWith('/admin')) {
+        return '/owner/console';
+      }
+      if (currentPath.startsWith('/owner') ||
           currentPath.startsWith('/settings') ||
           currentPath.startsWith('/cars') ||
           currentPath.startsWith('/trips') ||

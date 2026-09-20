@@ -9,6 +9,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../auth/providers/auth_providers.dart';
 import '../models/trip.dart';
 import '../providers/trip_providers.dart';
 
@@ -153,16 +154,185 @@ class TripDetailScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _handleDeleteTrip(BuildContext context, WidgetRef ref, Trip trip) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Booking'),
+        content: Text('Are you sure you want to delete this booking for "${trip.customerName}"? This cannot be undone and will restore the vehicle availability.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(ctx).colorScheme.error),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        await ref.read(tripRepositoryProvider).deleteTrip(
+          tripId: trip.id,
+          carId: trip.carId,
+          ownerId: trip.ownerId,
+        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Booking deleted successfully')),
+          );
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/owner/trips');
+          }
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to delete booking: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleEditTrip(BuildContext context, WidgetRef ref, Trip trip) async {
+    final nameCtrl = TextEditingController(text: trip.customerName);
+    final phoneCtrl = TextEditingController(text: trip.customerPhone);
+    final pickupCtrl = TextEditingController(text: trip.pickupLocation);
+    final destCtrl = TextEditingController(text: trip.destination);
+    final fareCtrl = TextEditingController(text: trip.totalFare > 0 ? trip.totalFare.toString() : '');
+    final notesCtrl = TextEditingController(text: trip.notes ?? '');
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Edit Booking Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  IconButton(onPressed: () => Navigator.pop(ctx), icon: const Icon(Icons.close)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Customer Name', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: phoneCtrl,
+                decoration: const InputDecoration(labelText: 'Customer Phone', border: OutlineInputBorder()),
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: pickupCtrl,
+                decoration: const InputDecoration(labelText: 'Pickup Location', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: destCtrl,
+                decoration: const InputDecoration(labelText: 'Destination', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: fareCtrl,
+                decoration: const InputDecoration(labelText: 'Agreed Total Fare (₹)', border: OutlineInputBorder()),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: notesCtrl,
+                decoration: const InputDecoration(labelText: 'Booking Notes', border: OutlineInputBorder()),
+                maxLines: 2,
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Save Changes'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (saved == true && context.mounted) {
+      try {
+        final newFare = int.tryParse(fareCtrl.text.trim()) ?? trip.totalFare;
+        final newBalance = (newFare - trip.paidAmount) > 0 ? (newFare - trip.paidAmount) : 0;
+
+        final updated = trip.copyWith(
+          customerName: nameCtrl.text.trim(),
+          customerPhone: phoneCtrl.text.trim(),
+          pickupLocation: pickupCtrl.text.trim(),
+          destination: destCtrl.text.trim(),
+          totalFare: newFare,
+          balanceAmount: newBalance,
+          notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null,
+        );
+
+        await ref.read(tripRepositoryProvider).updateTrip(updated);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Booking details updated successfully')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update booking: $e')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tripAsync = ref.watch(tripDetailProvider(tripId));
+    final user = ref.watch(currentUserDocProvider).value;
+    final isSuperAdmin = user?.role == UserRoles.superAdmin;
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Trip Details'),
         actions: [
-          if (tripAsync.value != null)
+          if (tripAsync.value != null) ...[
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Edit Booking',
+              onPressed: () => _handleEditTrip(context, ref, tripAsync.value!),
+            ),
+            if (tripAsync.value!.isReserved || isSuperAdmin)
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded),
+                tooltip: 'Delete Booking',
+                color: theme.colorScheme.error,
+                onPressed: () => _handleDeleteTrip(context, ref, tripAsync.value!),
+              ),
             IconButton(
               icon: const Icon(Icons.navigation_outlined),
               tooltip: 'Navigate on Google Maps',
@@ -172,6 +342,7 @@ class TripDetailScreen extends ConsumerWidget {
                 destination: tripAsync.value!.destination,
               ),
             ),
+          ],
         ],
       ),
       body: tripAsync.when(
@@ -396,6 +567,21 @@ class TripDetailScreen extends ConsumerWidget {
                     label: 'Collect Balance Payment (${Formatters.currency(trip.balanceAmount)})',
                     icon: Icons.qr_code_rounded,
                     onPressed: () => context.push('/trips/${trip.id}/pay'),
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+                AppButton.outlined(
+                  label: 'Edit Booking Details',
+                  icon: Icons.edit_outlined,
+                  onPressed: () => _handleEditTrip(context, ref, trip),
+                ),
+                if (trip.isReserved || isSuperAdmin) ...[
+                  const SizedBox(height: 8),
+                  AppButton.outlined(
+                    label: 'Delete Booking',
+                    icon: Icons.delete_outline_rounded,
+                    onPressed: () => _handleDeleteTrip(context, ref, trip),
                   ),
                 ],
                 const SizedBox(height: 24),

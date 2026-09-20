@@ -162,7 +162,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
                     itemBuilder: (context, index) {
                       final msg = messages[index];
                       final isMe = msg.senderId == currentUser?.uid;
-                      return _buildMessageBubble(context, msg, isMe);
+                      return _buildMessageBubble(context, msg, isMe, currentUser);
                     },
                   );
                 },
@@ -226,35 +226,58 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(BuildContext context, ChatMessage msg, bool isMe) {
+  Widget _buildMessageBubble(BuildContext context, ChatMessage msg, bool isMe, dynamic currentUser) {
     final theme = Theme.of(context);
+    final photoUrl = isMe ? (currentUser?.photoUrl ?? msg.senderPhotoUrl) : msg.senderPhotoUrl;
 
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isMe
-              ? theme.colorScheme.primaryContainer
-              : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isMe ? 16 : 4),
-            bottomRight: Radius.circular(isMe ? 4 : 16),
-          ),
-          border: Border.all(
-            color: isMe
-                ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isMe) ...[
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: theme.colorScheme.primaryContainer,
+              backgroundImage: photoUrl != null && photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+              child: photoUrl == null || photoUrl.isEmpty
+                  ? Text(
+                      msg.senderName.isNotEmpty ? msg.senderName[0].toUpperCase() : 'U',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: isMe
+                    ? theme.colorScheme.primaryContainer
+                    : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(16),
+                  topRight: const Radius.circular(16),
+                  bottomLeft: Radius.circular(isMe ? 16 : 4),
+                  bottomRight: Radius.circular(isMe ? 4 : 16),
+                ),
+                border: Border.all(
+                  color: isMe
+                      ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                      : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
             if (!isMe) ...[
               Text(
                 msg.senderName,
@@ -345,6 +368,23 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
             ),
           ],
         ),
+      ),
+    ),
+    if (isMe) ...[
+            const SizedBox(width: 8),
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: theme.colorScheme.primary,
+              backgroundImage: photoUrl != null && photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+              child: photoUrl == null || photoUrl.isEmpty
+                  ? Text(
+                      currentUser?.name.isNotEmpty == true ? currentUser!.name[0].toUpperCase() : 'ME',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                    )
+                  : null,
+            ),
+          ],
+        ],
       ),
     );
   }

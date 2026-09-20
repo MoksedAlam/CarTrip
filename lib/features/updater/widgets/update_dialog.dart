@@ -174,7 +174,12 @@ class _UpdateDialogState extends State<UpdateDialog> {
         actions: [
           if (!_isDownloading && !widget.updateInfo.isMandatory)
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                if (widget.updateInfo.updateId.isNotEmpty) {
+                  widget.updateService.dismissUpdate(widget.updateInfo.updateId);
+                }
+                Navigator.of(context).pop();
+              },
               child: const Text('Later'),
             ),
           if (!_isDownloading)

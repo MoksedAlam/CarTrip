@@ -19,8 +19,9 @@ import '../providers/trip_providers.dart';
 
 class ReservationFormScreen extends ConsumerStatefulWidget {
   final String? initialCarId;
+  final Car? initialCar;
 
-  const ReservationFormScreen({super.key, this.initialCarId});
+  const ReservationFormScreen({super.key, this.initialCarId, this.initialCar});
 
   @override
   ConsumerState<ReservationFormScreen> createState() => _ReservationFormScreenState();
@@ -58,7 +59,8 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedCarId = widget.initialCarId;
+    _selectedCar = widget.initialCar;
+    _selectedCarId = widget.initialCar?.id ?? widget.initialCarId;
   }
 
   final _givenByOwnerController = TextEditingController();
@@ -240,9 +242,11 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
           ? 0
           : ((effectiveTotalFare - fareCalc.baseAmount) > 0 ? (effectiveTotalFare - fareCalc.baseAmount) : 0);
 
+      final isPartnerCar = _selectedCar!.ownerId != user.uid;
+
       final trip = Trip(
         id: '',
-        ownerId: user.uid,
+        ownerId: _selectedCar!.ownerId,
         carId: _selectedCar!.id,
         carNumber: _selectedCar!.carNumber,
         carName: _selectedCar!.carName,
@@ -269,10 +273,15 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
             ? PaymentStatuses.paid
             : (advance > 0 ? PaymentStatuses.partial : PaymentStatuses.unpaid),
         status: TripStatuses.reserved,
-        notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
-        givenByOwnerName: _isReferredByOwner && _givenByOwnerController.text.trim().isNotEmpty
-            ? _givenByOwnerController.text.trim()
-            : 'Direct Customer',
+        notes: _notesController.text.trim().isNotEmpty
+            ? _notesController.text.trim()
+            : (isPartnerCar ? 'Partner booking referred by ${user.name}' : null),
+        givenByOwnerName: isPartnerCar
+            ? user.name
+            : (_isReferredByOwner && _givenByOwnerController.text.trim().isNotEmpty
+                ? _givenByOwnerController.text.trim()
+                : 'Direct Customer'),
+        givenByOwnerId: isPartnerCar ? user.uid : null,
         referralCommission: int.tryParse(_commissionController.text.trim()) ?? 0,
         monthKey: MonthKey.fromDateTime(_startDateTime),
       );
@@ -304,6 +313,7 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
   @override
   Widget build(BuildContext context) {
     final myCarsAsync = ref.watch(myCarsProvider);
+    final user = ref.watch(currentUserDocProvider).value;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -315,6 +325,9 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
         error: (err, _) => Center(child: Text('Error loading cars: $err')),
         data: (cars) {
           final availableCars = cars.where((c) => !c.isMaintenance).toList();
+          if (widget.initialCar != null && !availableCars.any((c) => c.id == widget.initialCar!.id)) {
+            availableCars.insert(0, widget.initialCar!);
+          }
 
           if (availableCars.isEmpty) {
             return Center(
@@ -368,6 +381,43 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (_selectedCar != null && user != null && _selectedCar!.ownerId != user.uid) ...[
+                      Card(
+                        elevation: 0,
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.blue.shade300),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.share_location_rounded, color: Colors.blue),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Partner Booking for ${_selectedCar!.ownerName}',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blue),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Customer details will be sent directly to ${_selectedCar!.ownerName}. The car owner can call the customer and finalize any fare.',
+                                      style: TextStyle(fontSize: 11, color: Colors.blue.shade900),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+
                     // Vehicle Selector
                     AppDropdown<String>(
                       label: 'Select Vehicle *',

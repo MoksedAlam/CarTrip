@@ -10,3 +10,9 @@ final availableUpdateProvider = FutureProvider<AppUpdateInfo?>((ref) async {
   final service = ref.watch(updateServiceProvider);
   return service.checkForUpdate();
 });
+
+final realtimeUpdateStreamProvider = StreamProvider<AppUpdateInfo?>((ref) {
+  final service = ref.watch(updateServiceProvider);
+  return service.watchUpdateConfig();
+});
+

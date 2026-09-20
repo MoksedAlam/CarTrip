@@ -18,7 +18,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late final TextEditingController _phoneController;
   late final TextEditingController _areaController;
   late final TextEditingController _upiController;
-  bool _showPhoneOnBoard = false;
+  late final TextEditingController _photoUrlController;
+  bool _showPhoneOnBoard = true;
   bool _isSaving = false;
 
   @override
@@ -29,7 +30,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _phoneController = TextEditingController(text: user?.phone ?? '');
     _areaController = TextEditingController(text: user?.area ?? '');
     _upiController = TextEditingController(text: user?.upiId ?? '');
-    _showPhoneOnBoard = user?.showPhoneOnBoard ?? false;
+    _photoUrlController = TextEditingController(text: user?.photoUrl ?? '');
+    _showPhoneOnBoard = user?.showPhoneOnBoard ?? true;
   }
 
   @override
@@ -38,7 +40,79 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _phoneController.dispose();
     _areaController.dispose();
     _upiController.dispose();
+    _photoUrlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showPhotoDialog() async {
+    final tempController = TextEditingController(text: _photoUrlController.text);
+    final presets = [
+      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+      'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+    ];
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Profile Photo'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Enter Image URL:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: tempController,
+                decoration: const InputDecoration(
+                  hintText: 'https://example.com/photo.jpg',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('Or Choose an Avatar:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: presets.map((url) {
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(25),
+                    onTap: () {
+                      tempController.text = url;
+                      setState(() => _photoUrlController.text = url);
+                      Navigator.pop(ctx);
+                    },
+                    child: CircleAvatar(
+                      radius: 24,
+                      backgroundImage: NetworkImage(url),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() => _photoUrlController.clear());
+              Navigator.pop(ctx);
+            },
+            child: const Text('Remove Photo'),
+          ),
+          FilledButton(
+            onPressed: () {
+              setState(() => _photoUrlController.text = tempController.text.trim());
+              Navigator.pop(ctx);
+            },
+            child: const Text('Set Photo'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _handleSave() async {
@@ -55,6 +129,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         phone: _phoneController.text.trim(),
         area: _areaController.text.trim(),
         upiId: _upiController.text.trim().isNotEmpty ? _upiController.text.trim() : null,
+        photoUrl: _photoUrlController.text.trim().isNotEmpty ? _photoUrlController.text.trim() : null,
         showPhoneOnBoard: _showPhoneOnBoard,
       );
 
@@ -82,6 +157,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final photo = _photoUrlController.text.trim();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'),
@@ -93,6 +171,49 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             key: _formKey,
             child: Column(
               children: [
+                // Profile Avatar with Change Button
+                Center(
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: theme.colorScheme.primaryContainer,
+                        backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
+                        child: photo.isEmpty
+                            ? Text(
+                                _nameController.text.isNotEmpty ? _nameController.text[0].toUpperCase() : 'U',
+                                style: TextStyle(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                ),
+                              )
+                            : null,
+                      ),
+                      InkWell(
+                        onTap: _showPhotoDialog,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: theme.colorScheme.surface, width: 2),
+                          ),
+                          child: const Icon(Icons.camera_alt_rounded, size: 18, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: _showPhotoDialog,
+                  icon: const Icon(Icons.photo_camera_outlined, size: 16),
+                  label: const Text('Change Photo'),
+                ),
+                const SizedBox(height: 16),
+
                 AppTextField(
                   controller: _nameController,
                   label: 'Full Name *',
@@ -127,7 +248,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: SwitchListTile(
                     title: const Text('Show Phone on Fleet Board'),
                     subtitle: const Text(
-                      'Allows other owners to see your number and call you from the board',
+                      'Allows other owners to see your number and call you from the board (Enabled by default)',
                       style: TextStyle(fontSize: 12),
                     ),
                     value: _showPhoneOnBoard,

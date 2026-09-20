@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../cars/models/car.dart';
+import '../../trips/screens/reservation_form_screen.dart';
 
 class OtherCarDetailSheet extends StatelessWidget {
   final Car car;
@@ -223,6 +224,24 @@ class OtherCarDetailSheet extends StatelessWidget {
           ),
 
           const SizedBox(height: 16),
+
+          // Primary action: Refer a booking to this car
+          AppButton(
+            label: 'Refer Booking to This Car',
+            icon: Icons.add_circle_outline_rounded,
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ReservationFormScreen(
+                    initialCarId: car.id,
+                    initialCar: car,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
 
           // Action Buttons: Call, WhatsApp, Map
           Row(

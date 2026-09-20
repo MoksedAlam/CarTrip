@@ -133,7 +133,7 @@ void main() {
         ),
         currentPath: '/admin/approvals',
       );
-      expect(adminDest, isNull);
+      expect(adminDest, RouteGuards.ownerConsolePath);
     });
 
     test('Active owner redirects to owner home', () {

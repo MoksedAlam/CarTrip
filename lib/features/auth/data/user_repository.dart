@@ -75,16 +75,21 @@ class UserRepository {
     required String phone,
     required String area,
     String? upiId,
+    String? photoUrl,
     required bool showPhoneOnBoard,
   }) async {
-    await _userDoc(uid).update({
+    final Map<String, dynamic> data = {
       'name': name.trim(),
       'phone': phone.trim(),
       'area': area.trim(),
       'upiId': (upiId != null && upiId.trim().isNotEmpty) ? upiId.trim() : null,
       'showPhoneOnBoard': showPhoneOnBoard,
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    };
+    if (photoUrl != null) {
+      data['photoUrl'] = photoUrl.trim().isNotEmpty ? photoUrl.trim() : null;
+    }
+    await _userDoc(uid).update(data);
   }
 
   Future<void> deleteAccountAndData(String uid) async {

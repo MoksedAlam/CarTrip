@@ -14,6 +14,7 @@ import '../../cars/providers/car_providers.dart';
 import '../../reports/providers/report_providers.dart';
 import '../../trips/models/trip.dart';
 import '../../trips/providers/trip_providers.dart';
+import '../../updater/models/app_update_info.dart';
 import '../../updater/providers/update_providers.dart';
 import '../../updater/widgets/update_dialog.dart';
 
@@ -48,6 +49,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<AppUpdateInfo?>>(realtimeUpdateStreamProvider, (prev, next) {
+      final update = next.value;
+      if (update != null && update.hasUpdate && mounted) {
+        UpdateDialog.show(context, updateInfo: update, updateService: ref.read(updateServiceProvider));
+      }
+    });
+
     final user = ref.watch(currentUserDocProvider).value;
     final theme = Theme.of(context);
     final now = DateTime.now();
@@ -305,7 +313,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             SectionHeader(
               title: 'This Month (${MonthKey.formatMonthLabel(currentMonth)})',
               actionLabel: 'Reports',
-              onAction: () => context.go('/owner/reports'),
+              onAction: () => context.push('/owner/reports'),
             ),
             Row(
               children: [
@@ -315,7 +323,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     value: Formatters.currency(report?.grossEarnings ?? 0),
                     icon: Icons.trending_up,
                     valueColor: AppColors.statusAvailableLight,
-                    onTap: () => context.go('/owner/reports'),
+                    onTap: () => context.push('/owner/reports'),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -325,7 +333,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     value: Formatters.currency(report?.totalExpenses ?? 0),
                     icon: Icons.trending_down,
                     valueColor: AppColors.lightError,
-                    onTap: () => context.go('/owner/reports'),
+                    onTap: () => context.push('/owner/reports'),
                   ),
                 ),
               ],
@@ -341,7 +349,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     valueColor: (report?.netProfit ?? 0) >= 0
                         ? AppColors.statusAvailableLight
                         : AppColors.lightError,
-                    onTap: () => context.go('/owner/reports'),
+                    onTap: () => context.push('/owner/reports'),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -350,7 +358,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     label: 'Completed Trips',
                     value: '${report?.totalTrips ?? 0}',
                     icon: Icons.task_alt_outlined,
-                    onTap: () => context.go('/owner/reports'),
+                    onTap: () => context.push('/owner/reports'),
                   ),
                 ),
               ],

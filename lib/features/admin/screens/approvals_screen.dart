@@ -8,7 +8,9 @@ import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
 import '../../auth/models/app_user.dart';
 import '../data/admin_repository.dart';
+import '../../updater/providers/update_providers.dart';
 import 'admin_fleet_screen.dart';
+import 'admin_reports_view.dart';
 import 'users_screen.dart';
 
 final adminRepositoryProvider = Provider<AdminRepository>((ref) {
@@ -33,13 +35,111 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> with SingleTi
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showPushUpdateDialog() async {
+    final versionCtrl = TextEditingController(text: '1.0.3');
+    final buildCtrl = TextEditingController(text: '4');
+    final urlCtrl = TextEditingController(
+      text: 'https://github.com/ridaalam62-tech/CarTrip/releases/download/v1.0.3/app-release.apk',
+    );
+    final notesCtrl = TextEditingController(
+      text: 'New features: Fleet live tracking, universal partner booking, and live reports.',
+    );
+    bool isMandatory = false;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.system_update_rounded, color: Colors.amber),
+              SizedBox(width: 8),
+              Text('Broadcast App Update'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Broadcasting an update will immediately show the update prompt on all users\' devices in real time.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: versionCtrl,
+                  decoration: const InputDecoration(labelText: 'Version Name', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: buildCtrl,
+                  decoration: const InputDecoration(labelText: 'Build Number', border: OutlineInputBorder()),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: urlCtrl,
+                  decoration: const InputDecoration(labelText: 'APK Download URL', border: OutlineInputBorder()),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: notesCtrl,
+                  decoration: const InputDecoration(labelText: 'Release Notes', border: OutlineInputBorder()),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 10),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Mandatory Update', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  value: isMandatory,
+                  onChanged: (val) => setDialogState(() => isMandatory = val),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            FilledButton.icon(
+              icon: const Icon(Icons.send_rounded, size: 16),
+              label: const Text('Broadcast Update'),
+              onPressed: () async {
+                try {
+                  await ref.read(updateServiceProvider).pushUpdateBroadcast(
+                    latestVersion: versionCtrl.text.trim(),
+                    latestBuildNumber: int.tryParse(buildCtrl.text.trim()) ?? 1,
+                    downloadUrl: urlCtrl.text.trim(),
+                    releaseNotes: notesCtrl.text.trim(),
+                    isMandatory: isMandatory,
+                  );
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Update successfully broadcasted to all users!')),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to broadcast update: $e')),
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _handleApprove(BuildContext context, AppUser user) async {
@@ -52,8 +152,17 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> with SingleTi
       }
     } catch (e) {
       if (context.mounted) {
+        final err = e.toString();
+        final isPerm = err.contains('permission-denied') || err.contains('permission');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to approve: $e')),
+          SnackBar(
+            content: Text(
+              isPerm
+                  ? 'Permission denied: Please ensure Firestore rules grant Super Admin update rights.'
+                  : 'Failed to approve: $e',
+            ),
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }
@@ -306,6 +415,13 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> with SingleTi
           },
         ),
         title: const Text('Super Admin Console', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.system_update_rounded),
+            tooltip: 'Broadcast App Update',
+            onPressed: _showPushUpdateDialog,
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: [
@@ -333,6 +449,7 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> with SingleTi
             ),
             const Tab(text: 'Users'),
             const Tab(text: 'Fleet'),
+            const Tab(text: 'Reports'),
           ],
         ),
       ),
@@ -342,6 +459,7 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> with SingleTi
           _buildApprovalsTab(),
           const UsersView(),
           const AdminFleetView(),
+          const AdminReportsView(),
         ],
       ),
     );

@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/admin/screens/admin_fleet_screen.dart';
 import '../../features/admin/screens/approvals_screen.dart';
-import '../../features/admin/screens/users_screen.dart';
 import '../../features/auth/models/app_user.dart';
 import '../../features/auth/providers/auth_providers.dart';
 import '../../features/auth/screens/blocked_screen.dart';
@@ -20,7 +18,6 @@ import '../../features/reports/screens/reports_screen.dart';
 import '../../features/settings/screens/about_screen.dart';
 import '../../features/settings/screens/profile_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
-import '../../features/shell/admin_shell.dart';
 import '../../features/shell/driver_shell.dart';
 import '../../features/shell/owner_shell.dart';
 import '../../features/splash/splash_screen.dart';
@@ -31,12 +28,12 @@ import '../../features/trips/screens/trip_detail_screen.dart';
 import '../../features/trips/screens/trips_screen.dart';
 import 'route_guards.dart';
 
-final routerProvider = Provider<GoRouter>((ref) {
-  final authStateAsync = ref.watch(authStateChangesProvider);
-  final userDocAsync = ref.watch(currentUserDocProvider);
+import '../widgets/app_back_handler.dart';
 
-  final isAuthInitialized = !authStateAsync.isLoading;
-  final isSignedIn = authStateAsync.value != null;
+final routerProvider = Provider<GoRouter>((ref) {
+  final isAuthInitialized = ref.watch(authStateChangesProvider).hasValue;
+  final isSignedIn = ref.watch(authStateChangesProvider).value != null;
+  final userDocAsync = ref.watch(currentUserDocProvider);
   final isUserDocLoaded = !userDocAsync.isLoading;
   final AppUser? userDoc = userDocAsync.value;
 
@@ -76,73 +73,89 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Cars management routes
       GoRoute(
         path: '/cars',
-        builder: (context, state) => const MyCarsScreen(),
+        builder: (context, state) => const AppBackHandler(child: MyCarsScreen()),
       ),
       GoRoute(
         path: '/cars/add',
-        builder: (context, state) => const CarFormScreen(),
+        builder: (context, state) => const AppBackHandler(child: CarFormScreen()),
       ),
       GoRoute(
         path: '/cars/:carId',
-        builder: (context, state) => CarDetailScreen(
-          carId: state.pathParameters['carId']!,
+        builder: (context, state) => AppBackHandler(
+          child: CarDetailScreen(
+            carId: state.pathParameters['carId']!,
+          ),
         ),
       ),
       GoRoute(
         path: '/cars/:carId/edit',
-        builder: (context, state) => CarFormScreen(
-          carId: state.pathParameters['carId']!,
+        builder: (context, state) => AppBackHandler(
+          child: CarFormScreen(
+            carId: state.pathParameters['carId']!,
+          ),
         ),
       ),
 
       // Trips management routes
       GoRoute(
         path: '/trips/new',
-        builder: (context, state) => ReservationFormScreen(
-          initialCarId: state.uri.queryParameters['carId'],
+        builder: (context, state) => AppBackHandler(
+          child: ReservationFormScreen(
+            initialCarId: state.uri.queryParameters['carId'],
+          ),
         ),
       ),
       GoRoute(
         path: '/trips/:tripId',
-        builder: (context, state) => TripDetailScreen(
-          tripId: state.pathParameters['tripId']!,
+        builder: (context, state) => AppBackHandler(
+          child: TripDetailScreen(
+            tripId: state.pathParameters['tripId']!,
+          ),
         ),
       ),
       GoRoute(
         path: '/trips/:tripId/complete',
-        builder: (context, state) => CompleteTripScreen(
-          tripId: state.pathParameters['tripId']!,
+        builder: (context, state) => AppBackHandler(
+          child: CompleteTripScreen(
+            tripId: state.pathParameters['tripId']!,
+          ),
         ),
       ),
       GoRoute(
         path: '/trips/:tripId/pay',
-        builder: (context, state) => PaymentQrScreen(
-          tripId: state.pathParameters['tripId']!,
+        builder: (context, state) => AppBackHandler(
+          child: PaymentQrScreen(
+            tripId: state.pathParameters['tripId']!,
+          ),
         ),
       ),
 
       // Expenses routes
       GoRoute(
         path: '/expenses/new',
-        builder: (context, state) => ExpenseFormScreen(
-          initialCarId: state.uri.queryParameters['carId'],
+        builder: (context, state) => AppBackHandler(
+          child: ExpenseFormScreen(
+            initialCarId: state.uri.queryParameters['carId'],
+          ),
         ),
       ),
       GoRoute(
         path: '/expenses/:expenseId/edit',
-        builder: (context, state) => ExpenseFormScreen(
-          expenseId: state.pathParameters['expenseId'],
+        builder: (context, state) => AppBackHandler(
+          child: ExpenseFormScreen(
+            expenseId: state.pathParameters['expenseId'],
+          ),
         ),
       ),
 
       // Global Settings routes
       GoRoute(
         path: '/settings/profile',
-        builder: (context, state) => const ProfileScreen(),
+        builder: (context, state) => const AppBackHandler(child: ProfileScreen()),
       ),
       GoRoute(
         path: '/settings/about',
-        builder: (context, state) => const AboutScreen(),
+        builder: (context, state) => const AppBackHandler(child: AboutScreen()),
       ),
 
       // Owner Shell (5 Tabs)
@@ -155,7 +168,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/owner/home',
-                builder: (context, state) => const HomeScreen(),
+                builder: (context, state) => const HomeExitHandler(child: HomeScreen()),
               ),
             ],
           ),
@@ -163,7 +176,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/owner/fleet',
-                builder: (context, state) => const FleetBoardScreen(),
+                builder: (context, state) => const AppBackHandler(child: FleetBoardScreen()),
               ),
             ],
           ),
@@ -171,7 +184,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/owner/trips',
-                builder: (context, state) => const TripsScreen(),
+                builder: (context, state) => const AppBackHandler(child: TripsScreen()),
               ),
             ],
           ),
@@ -179,7 +192,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/owner/community',
-                builder: (context, state) => const GroupChatScreen(),
+                builder: (context, state) => const AppBackHandler(child: GroupChatScreen()),
               ),
             ],
           ),
@@ -187,7 +200,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/owner/console',
-                builder: (context, state) => const ApprovalsScreen(),
+                builder: (context, state) => const AppBackHandler(child: ApprovalsScreen()),
               ),
             ],
           ),
@@ -195,7 +208,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/owner/settings',
-                builder: (context, state) => const SettingsScreen(),
+                builder: (context, state) => const AppBackHandler(child: SettingsScreen()),
               ),
             ],
           ),
@@ -205,7 +218,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Standalone reports route for owner
       GoRoute(
         path: '/owner/reports',
-        builder: (context, state) => const ReportsScreen(),
+        builder: (context, state) => const AppBackHandler(child: ReportsScreen()),
       ),
 
       // Driver Shell (3 Tabs)
@@ -234,47 +247,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/driver/settings',
-                builder: (context, state) => const SettingsScreen(),
-              ),
-            ],
-          ),
-        ],
-      ),
-
-      // Super Admin Shell (4 Tabs)
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) {
-          return AdminShell(navigationShell: navigationShell);
-        },
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/admin/approvals',
-                builder: (context, state) => const ApprovalsScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/admin/users',
-                builder: (context, state) => const UsersScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/admin/fleet',
-                builder: (context, state) => const AdminFleetScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/admin/settings',
                 builder: (context, state) => const SettingsScreen(),
               ),
             ],

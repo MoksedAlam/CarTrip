@@ -91,7 +91,7 @@ class AppUser {
       registrationSubmitted: map['registrationSubmitted'] as bool? ?? false,
       declarationAccepted: map['declarationAccepted'] as bool? ?? false,
       declarationAt: (map['declarationAt'] as Timestamp?)?.toDate(),
-      showPhoneOnBoard: map['showPhoneOnBoard'] as bool? ?? false,
+      showPhoneOnBoard: map['showPhoneOnBoard'] as bool? ?? true,
       isPremium: map['isPremium'] as bool? ?? false,
       premiumUntil: (map['premiumUntil'] as Timestamp?)?.toDate(),
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),

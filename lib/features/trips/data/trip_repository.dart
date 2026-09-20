@@ -352,4 +352,51 @@ class TripRepository {
 
     batch.update(_carsCollection.doc(carId), carUpdate);
   }
+
+  /// Watches all trips in the entire system (for Super Admin reports).
+  Stream<List<Trip>> watchAllTrips() {
+    return _tripsCollection
+        .snapshots()
+        .map((snap) => snap.docs.map(Trip.fromDoc).toList());
+  }
+
+  /// Updates an existing trip's details and resynchronizes car schedule if needed.
+  Future<void> updateTrip(Trip trip) async {
+    final batch = _firestore.batch();
+    final tripDocRef = _tripsCollection.doc(trip.id);
+
+    final Map<String, dynamic> data = trip.toMap();
+    data['updatedAt'] = FieldValue.serverTimestamp();
+    batch.update(tripDocRef, data);
+
+    // Sync car schedule
+    await _syncCarAvailabilityInBatch(
+      batch: batch,
+      carId: trip.carId,
+      ownerId: trip.ownerId,
+      hasOngoingTrip: trip.isOngoing ? true : (trip.isCompleted || trip.isCancelled ? false : null),
+    );
+
+    await batch.commit();
+  }
+
+  /// Deletes a trip (e.g. cancelled before start or removed by Super Admin).
+  Future<void> deleteTrip({
+    required String tripId,
+    required String carId,
+    required String ownerId,
+  }) async {
+    final batch = _firestore.batch();
+    batch.delete(_tripsCollection.doc(tripId));
+
+    // Resynchronize the car's availability
+    await _syncCarAvailabilityInBatch(
+      batch: batch,
+      carId: carId,
+      ownerId: ownerId,
+      hasOngoingTrip: false,
+    );
+
+    await batch.commit();
+  }
 }

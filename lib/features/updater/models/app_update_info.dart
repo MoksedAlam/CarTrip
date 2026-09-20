@@ -5,6 +5,7 @@ class AppUpdateInfo {
   final String releaseNotes;
   final bool isMandatory;
   final bool hasUpdate;
+  final String updateId;
 
   const AppUpdateInfo({
     required this.latestVersion,
@@ -13,20 +14,29 @@ class AppUpdateInfo {
     required this.releaseNotes,
     this.isMandatory = false,
     required this.hasUpdate,
+    this.updateId = '',
   });
 
-  factory AppUpdateInfo.fromFirestore(Map<String, dynamic> map, {required String currentVersion, required int currentBuildNumber}) {
+  factory AppUpdateInfo.fromFirestore(
+    Map<String, dynamic> map, {
+    required String currentVersion,
+    required int currentBuildNumber,
+    String? lastDismissedUpdateId,
+  }) {
     final latestVer = map['latestVersion'] as String? ?? currentVersion;
     final latestBuild = (map['latestBuildNumber'] as num?)?.toInt() ?? currentBuildNumber;
+    final updateId = map['updateId'] as String? ?? '';
     final hasNewVersion = _compareVersions(latestVer, currentVersion) > 0 || latestBuild > currentBuildNumber;
+    final isPushedUpdate = updateId.isNotEmpty && updateId != (lastDismissedUpdateId ?? '');
 
     return AppUpdateInfo(
       latestVersion: latestVer,
       latestBuildNumber: latestBuild,
       downloadUrl: map['downloadUrl'] as String? ?? '',
-      releaseNotes: map['releaseNotes'] as String? ?? 'Bug fixes and performance improvements.',
+      releaseNotes: map['releaseNotes'] as String? ?? 'New update available.',
       isMandatory: map['isMandatory'] as bool? ?? false,
-      hasUpdate: hasNewVersion && (map['downloadUrl'] as String? ?? '').isNotEmpty,
+      hasUpdate: (hasNewVersion || isPushedUpdate) && (map['downloadUrl'] as String? ?? '').isNotEmpty,
+      updateId: updateId,
     );
   }
 
