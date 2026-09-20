@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/map_launcher.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
@@ -106,9 +107,28 @@ class MyCarsScreen extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          car.statusSubtitle,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                car.statusSubtitle,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
+                              ),
+                            ),
+                            IconButton.filledTonal(
+                              icon: const Icon(Icons.location_on_rounded, size: 16),
+                              tooltip: 'Car Location on Maps',
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => MapLauncher.openCarLocation(
+                                context: context,
+                                latitude: car.latitude,
+                                longitude: car.longitude,
+                                address: car.lastLocationAddress,
+                                label: '${car.carName} (${car.carNumber})',
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

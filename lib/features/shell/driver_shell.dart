@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/widgets/car_trip_nav_bar.dart';
 import '../../core/widgets/offline_banner.dart';
 
 class DriverShell extends StatefulWidget {
@@ -50,28 +51,28 @@ class _DriverShellState extends State<DriverShell> {
             Expanded(child: widget.navigationShell),
           ],
         ),
-        bottomNavigationBar: NavigationBar(
+        bottomNavigationBar: CarTripNavBar(
           selectedIndex: widget.navigationShell.currentIndex,
-          onDestinationSelected: (index) {
+          onItemSelected: (index) {
             widget.navigationShell.goBranch(
               index,
               initialLocation: index == widget.navigationShell.currentIndex,
             );
           },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.directions_car_outlined),
-              selectedIcon: Icon(Icons.directions_car_rounded),
+          items: const [
+            CarTripNavItem(
+              icon: Icons.directions_car_outlined,
+              selectedIcon: Icons.directions_car_rounded,
               label: 'All Cars',
             ),
-            NavigationDestination(
-              icon: Icon(Icons.forum_outlined),
-              selectedIcon: Icon(Icons.forum_rounded),
+            CarTripNavItem(
+              icon: Icons.forum_outlined,
+              selectedIcon: Icons.forum_rounded,
               label: 'Group',
             ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings_rounded),
+            CarTripNavItem(
+              icon: Icons.settings_outlined,
+              selectedIcon: Icons.settings_rounded,
               label: 'Settings',
             ),
           ],

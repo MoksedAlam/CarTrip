@@ -113,7 +113,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
           tabs: const [
             Tab(text: 'Trips'),
             Tab(text: 'Expenses'),
-            Tab(text: 'Bhada Khata'),
+            Tab(text: 'Partner Ledger'),
           ],
         ),
       ),
@@ -350,11 +350,11 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
             ],
           ),
 
-          // 3. Bhada Khata Tab (भाड़ा लेन-देन & Ranking)
+          // 3. Partner Ledger Tab (Referrals & Ranking)
           tripsAsync.when(
-            loading: () => const LoadingView(message: 'Loading Bhada records...'),
+            loading: () => const LoadingView(message: 'Loading partner records...'),
             error: (err, _) => ErrorView(message: err.toString()),
-            data: (trips) => _buildBhadaKhataTab(trips),
+            data: (trips) => _buildPartnerLedgerTab(trips),
           ),
         ],
       ),
@@ -433,7 +433,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                           const Icon(Icons.handshake_rounded, size: 12, color: Colors.indigo),
                           const SizedBox(width: 4),
                           Text(
-                            'Bhada: ${trip.givenByOwnerName}',
+                            'Referral: ${trip.givenByOwnerName}',
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -498,7 +498,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
     );
   }
 
-  Widget _buildBhadaKhataTab(List<Trip> trips) {
+  Widget _buildPartnerLedgerTab(List<Trip> trips) {
     final theme = Theme.of(context);
     final partnerTrips = trips
         .where((t) =>
@@ -571,7 +571,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                       children: [
                         Icon(Icons.currency_rupee_rounded, color: Colors.white, size: 18),
                         SizedBox(width: 6),
-                        Text('Total Bhada Value', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                        Text('Total Shared Value', style: TextStyle(color: Colors.white70, fontSize: 11)),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -593,7 +593,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
             const Icon(Icons.leaderboard_rounded, color: Colors.amber, size: 20),
             const SizedBox(width: 8),
             Text(
-              'Bhada Distribution (Kisne Kitna Bhada Diya)',
+              'Partner Booking Distribution',
               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
@@ -605,9 +605,9 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
             padding: EdgeInsets.symmetric(vertical: 32),
             child: EmptyState(
               icon: Icons.handshake_outlined,
-              title: 'No Partner Bhada Records Yet',
+              title: 'No Partner Referral Records Yet',
               description:
-                  'When reserving a car, select "Dusre Owner Ne Diya" to record partner bookings and rental referrals.',
+                  'When reserving a car, select "Partner Referral" to record partner bookings and rental referrals.',
             ),
           )
         else
@@ -681,7 +681,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Bhada by: $ownerName',
+                              'Referred by: $ownerName',
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             Text(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/map_launcher.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/error_view.dart';
@@ -105,6 +106,18 @@ class CarDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Car Details'),
         actions: [
+          if (carAsync.value != null)
+            IconButton(
+              icon: const Icon(Icons.location_on_outlined),
+              tooltip: 'Car Location on Map',
+              onPressed: () => MapLauncher.openCarLocation(
+                context: context,
+                latitude: carAsync.value!.latitude,
+                longitude: carAsync.value!.longitude,
+                address: carAsync.value!.lastLocationAddress,
+                label: '${carAsync.value!.carName} (${carAsync.value!.carNumber})',
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: 'Edit Car',
@@ -176,6 +189,83 @@ class CarDetailScreen extends ConsumerWidget {
                             _specItem(context, 'AC', car.hasAC ? 'Yes' : 'No'),
                             _specItem(context, 'Fuel', car.fuelType),
                           ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Live GPS Location Card
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(
+                      color: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: (car.isMoving ? Colors.green : theme.colorScheme.primary).withValues(alpha: 0.12),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                car.isMoving ? Icons.directions_car_filled_rounded : Icons.location_on_rounded,
+                                color: car.isMoving ? Colors.green : theme.colorScheme.primary,
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        car.isMoving
+                                            ? 'Car Running (${car.speedKmH?.toInt() ?? 40} km/h)'
+                                            : 'Car Parked / Stationary',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    car.lastLocationAddress ??
+                                        'GPS: ${car.latitude?.toStringAsFixed(4) ?? "28.6139"}, ${car.longitude?.toStringAsFixed(4) ?? "77.2090"}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.tonalIcon(
+                            icon: const Icon(Icons.map_rounded, size: 18),
+                            label: const Text('View Car Location on Google Maps'),
+                            onPressed: () => MapLauncher.openCarLocation(
+                              context: context,
+                              latitude: car.latitude,
+                              longitude: car.longitude,
+                              address: car.lastLocationAddress,
+                              label: '${car.carName} (${car.carNumber})',
+                            ),
+                          ),
                         ),
                       ],
                     ),

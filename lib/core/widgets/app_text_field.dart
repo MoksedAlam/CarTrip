@@ -17,6 +17,8 @@ class AppTextField extends StatelessWidget {
   final Widget? prefix;
   final Widget? suffix;
   final String? prefixText;
+  final String? suffixText;
+  final String? helperText;
   final int maxLines;
   final List<TextInputFormatter>? inputFormatters;
   final FocusNode? focusNode;
@@ -38,6 +40,8 @@ class AppTextField extends StatelessWidget {
     this.prefix,
     this.suffix,
     this.prefixText,
+    this.suffixText,
+    this.helperText,
     this.maxLines = 1,
     this.inputFormatters,
     this.focusNode,
@@ -62,9 +66,11 @@ class AppTextField extends StatelessWidget {
         labelText: label,
         hintText: hint,
         errorText: errorText,
+        helperText: helperText,
         prefixIcon: prefix,
         prefixText: prefixText,
         suffixIcon: suffix,
+        suffixText: suffixText,
       ),
     );
   }

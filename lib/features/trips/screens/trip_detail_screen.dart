@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/map_launcher.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
@@ -160,6 +161,18 @@ class TripDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Trip Details'),
+        actions: [
+          if (tripAsync.value != null)
+            IconButton(
+              icon: const Icon(Icons.navigation_outlined),
+              tooltip: 'Navigate on Google Maps',
+              onPressed: () => MapLauncher.openRoute(
+                context: context,
+                pickup: tripAsync.value!.pickupLocation,
+                destination: tripAsync.value!.destination,
+              ),
+            ),
+        ],
       ),
       body: tripAsync.when(
         loading: () => const LoadingView(message: 'Loading trip details...'),
@@ -223,6 +236,19 @@ class TripDetailScreen extends ConsumerWidget {
                           'Schedule: ${Formatters.dateTime(trip.startAt)} – ${Formatters.dateTime(trip.plannedEndAt)}',
                           style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
                         ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.tonalIcon(
+                            icon: const Icon(Icons.navigation_rounded, size: 16),
+                            label: const Text('Open Route on Google Maps'),
+                            onPressed: () => MapLauncher.openRoute(
+                              context: context,
+                              pickup: trip.pickupLocation,
+                              destination: trip.destination,
+                            ),
+                          ),
+                        ),
                         if (trip.cancelReason != null) ...[
                           const SizedBox(height: 8),
                           Text(
@@ -235,7 +261,7 @@ class TripDetailScreen extends ConsumerWidget {
                   ),
                 ),
 
-                // Bhada Referral Card (Kisne Bhada Diya)
+                // Partner Referral Card
                 if (trip.givenByOwnerName != null && trip.givenByOwnerName!.isNotEmpty) ...[
                   Card(
                     elevation: 0,
@@ -247,7 +273,7 @@ class TripDetailScreen extends ConsumerWidget {
                     child: ListTile(
                       leading: const Icon(Icons.handshake_rounded, color: Colors.indigo),
                       title: Text(
-                        'Bhada Diya: ${trip.givenByOwnerName}',
+                        'Referred by: ${trip.givenByOwnerName}',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.indigo),
                       ),
                       subtitle: trip.referralCommission > 0

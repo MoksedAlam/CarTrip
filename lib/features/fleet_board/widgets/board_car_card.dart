@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/utils/map_launcher.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../cars/models/car.dart';
 import 'other_car_detail_sheet.dart';
@@ -237,10 +238,23 @@ class BoardCarCard extends StatelessWidget {
                     ),
                   ),
 
-                  // Call & WhatsApp icons
+                  // Map, Call & WhatsApp icons
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      IconButton.filledTonal(
+                        icon: const Icon(Icons.location_on_rounded, size: 18),
+                        tooltip: 'View Location on Map',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => MapLauncher.openCarLocation(
+                          context: context,
+                          latitude: car.latitude,
+                          longitude: car.longitude,
+                          address: car.lastLocationAddress,
+                          label: '${car.carName} (${car.carNumber})',
+                        ),
+                      ),
+                      const SizedBox(width: 6),
                       IconButton.filledTonal(
                         icon: const Icon(Icons.call_rounded, size: 18),
                         tooltip: 'Call Owner',

@@ -38,6 +38,9 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
   final _pickupController = TextEditingController();
   final _destinationController = TextEditingController();
   final _estimatedKmController = TextEditingController(text: '110');
+  final _ratePerKmController = TextEditingController(text: '18');
+  final _packagePriceController = TextEditingController(text: '2000');
+  final _manualPriceController = TextEditingController();
   final _advanceController = TextEditingController();
   final _notesController = TextEditingController();
 
@@ -46,8 +49,11 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
 
   bool _acUsed = true;
   String _pricingMode = PricingModes.fixed;
-  bool _showDestinationOnBoard = false;
+  bool _showDestinationOnBoard = true;
+  bool _isManualPrice = false;
   bool _isLoading = false;
+  String? _lastSyncedCarId;
+  bool? _lastSyncedAc;
 
   @override
   void initState() {
@@ -66,6 +72,9 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
     _pickupController.dispose();
     _destinationController.dispose();
     _estimatedKmController.dispose();
+    _ratePerKmController.dispose();
+    _packagePriceController.dispose();
+    _manualPriceController.dispose();
     _advanceController.dispose();
     _notesController.dispose();
     _givenByOwnerController.dispose();
@@ -112,30 +121,29 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
 
   FareRateSnapshot _buildRateSnapshot() {
     final priv = _selectedCarPrivate;
+    final customPerKm = int.tryParse(_ratePerKmController.text.trim());
+    final customPackage = int.tryParse(_packagePriceController.text.trim());
+
     if (priv == null) {
-      return const FareRateSnapshot(
+      final perKm = customPerKm ?? 18;
+      return FareRateSnapshot(
         fixedKm: AppConstants.defaultFixedKm,
-        fixedPrice: 2000,
-        perKmRate: 18,
-        extraKmRate: 18,
+        fixedPrice: customPackage ?? 2000,
+        perKmRate: perKm,
+        extraKmRate: perKm,
       );
     }
 
-    if (_acUsed) {
-      return FareRateSnapshot(
-        fixedKm: priv.fixedKm,
-        fixedPrice: priv.fixedPriceAC,
-        perKmRate: priv.perKmRateAC,
-        extraKmRate: priv.extraKmRateAC,
-      );
-    } else {
-      return FareRateSnapshot(
-        fixedKm: priv.fixedKm,
-        fixedPrice: priv.fixedPriceNonAC,
-        perKmRate: priv.perKmRateNonAC,
-        extraKmRate: priv.extraKmRateNonAC,
-      );
-    }
+    final defaultFixedPrice = _acUsed ? priv.fixedPriceAC : priv.fixedPriceNonAC;
+    final defaultPerKm = _acUsed ? priv.perKmRateAC : priv.perKmRateNonAC;
+    final defaultExtraKm = _acUsed ? priv.extraKmRateAC : priv.extraKmRateNonAC;
+
+    return FareRateSnapshot(
+      fixedKm: priv.fixedKm,
+      fixedPrice: customPackage ?? defaultFixedPrice,
+      perKmRate: customPerKm ?? defaultPerKm,
+      extraKmRate: customPerKm ?? defaultExtraKm,
+    );
   }
 
   FareCalculationResult _calculateLiveFare() {
@@ -150,6 +158,14 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
       extraChargeAmounts: [],
       paidAmount: advance,
     );
+  }
+
+  int _getEffectiveTotalFare(FareCalculationResult calc) {
+    final manual = int.tryParse(_manualPriceController.text.trim());
+    if (manual != null && manual > 0) {
+      return manual;
+    }
+    return calc.totalFare;
   }
 
   Future<void> _handleSave() async {
@@ -202,6 +218,8 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
       final estimatedKm = double.tryParse(_estimatedKmController.text.trim()) ?? 0.0;
       final advance = int.tryParse(_advanceController.text.trim()) ?? 0;
       final fareCalc = _calculateLiveFare();
+      final effectiveTotalFare = _getEffectiveTotalFare(fareCalc);
+      final effectiveBalance = (effectiveTotalFare - advance) > 0 ? (effectiveTotalFare - advance) : 0;
 
       final paymentsList = <PaymentEntry>[];
       if (advance > 0) {
@@ -214,6 +232,13 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
           ),
         );
       }
+
+      final baseAmount = _pricingMode == PricingModes.perKm
+          ? effectiveTotalFare
+          : (effectiveTotalFare < fareCalc.baseAmount ? effectiveTotalFare : fareCalc.baseAmount);
+      final kmCharge = _pricingMode == PricingModes.perKm
+          ? 0
+          : ((effectiveTotalFare - fareCalc.baseAmount) > 0 ? (effectiveTotalFare - fareCalc.baseAmount) : 0);
 
       final trip = Trip(
         id: '',
@@ -232,15 +257,15 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
         acUsed: _acUsed,
         rateSnapshot: rateSnapshot,
         estimatedKm: estimatedKm,
-        baseAmount: fareCalc.baseAmount,
-        kmCharge: fareCalc.extraKmCharge,
+        baseAmount: baseAmount,
+        kmCharge: kmCharge,
         extraChargesTotal: 0,
-        totalFare: fareCalc.totalFare,
+        totalFare: effectiveTotalFare,
         advanceAmount: advance,
         payments: paymentsList,
         paidAmount: advance,
-        balanceAmount: fareCalc.balance,
-        paymentStatus: advance >= fareCalc.totalFare
+        balanceAmount: effectiveBalance,
+        paymentStatus: advance >= effectiveTotalFare
             ? PaymentStatuses.paid
             : (advance > 0 ? PaymentStatuses.partial : PaymentStatuses.unpaid),
         status: TripStatuses.reserved,
@@ -313,8 +338,27 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
           final privAsync = ref.watch(carPrivateStreamProvider(_selectedCar!.id));
           _selectedCarPrivate = privAsync.value;
 
+          if (_selectedCarPrivate != null) {
+            final priv = _selectedCarPrivate!;
+            if (_lastSyncedCarId != _selectedCar!.id || _lastSyncedAc != _acUsed) {
+              _lastSyncedCarId = _selectedCar!.id;
+              _lastSyncedAc = _acUsed;
+              final defaultRate = _acUsed ? priv.perKmRateAC : priv.perKmRateNonAC;
+              final defaultPackage = _acUsed ? priv.fixedPriceAC : priv.fixedPriceNonAC;
+              _ratePerKmController.text = defaultRate.toString();
+              _packagePriceController.text = defaultPackage.toString();
+            }
+          }
+
           final fareResult = _calculateLiveFare();
           final rateSnapshot = _buildRateSnapshot();
+          if (_manualPriceController.text.isEmpty && !_isManualPrice) {
+            _manualPriceController.text = fareResult.totalFare.toString();
+          }
+          final effectiveTotalFare = _getEffectiveTotalFare(fareResult);
+          final advance = int.tryParse(_advanceController.text.trim()) ?? 0;
+          final effectiveBalance = (effectiveTotalFare - advance) > 0 ? (effectiveTotalFare - advance) : 0;
+          final estimatedKm = double.tryParse(_estimatedKmController.text.trim()) ?? 0.0;
 
           return SafeArea(
             child: SingleChildScrollView(
@@ -372,8 +416,8 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
 
                     const Divider(height: 32),
 
-                    // Bhada Source / Referral
-                    Text('Bhada / Referral Source (भाड़ा किसने दिया)', style: theme.textTheme.titleMedium),
+                    // Booking Source / Referral
+                    Text('Booking / Referral Source', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 10),
                     SegmentedButton<bool>(
                       segments: const [
@@ -384,7 +428,7 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
                         ),
                         ButtonSegment<bool>(
                           value: true,
-                          label: Text('Dusre Owner Ne Diya'),
+                          label: Text('Partner Referral'),
                           icon: Icon(Icons.handshake_rounded),
                         ),
                       ],
@@ -397,8 +441,8 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
                       const SizedBox(height: 12),
                       AppTextField(
                         controller: _givenByOwnerController,
-                        label: 'Owner Name (Kisne Bhada Diya) *',
-                        hint: 'e.g. Ramesh Bhai, Rida Alam',
+                        label: 'Partner Owner Name *',
+                        hint: 'e.g. Ramesh Kumar, Rida Alam',
                         prefix: const Icon(Icons.badge_outlined),
                         textCapitalization: TextCapitalization.words,
                         validator: (v) {
@@ -496,20 +540,34 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
                       children: [
                         Expanded(
                           child: ChoiceChip(
-                            label: const Center(child: Text('Fixed Package')),
-                            selected: _pricingMode == PricingModes.fixed,
+                            label: const Center(child: Text('Per KM Rate')),
+                            selected: _pricingMode == PricingModes.perKm,
                             onSelected: (val) {
-                              if (val) setState(() => _pricingMode = PricingModes.fixed);
+                              if (val) {
+                                setState(() {
+                                  _pricingMode = PricingModes.perKm;
+                                  if (!_isManualPrice) {
+                                    _manualPriceController.text = _calculateLiveFare().totalFare.toString();
+                                  }
+                                });
+                              }
                             },
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: ChoiceChip(
-                            label: const Center(child: Text('Per KM Rate')),
-                            selected: _pricingMode == PricingModes.perKm,
+                            label: const Center(child: Text('Fixed Package')),
+                            selected: _pricingMode == PricingModes.fixed,
                             onSelected: (val) {
-                              if (val) setState(() => _pricingMode = PricingModes.perKm);
+                              if (val) {
+                                setState(() {
+                                  _pricingMode = PricingModes.fixed;
+                                  if (!_isManualPrice) {
+                                    _manualPriceController.text = _calculateLiveFare().totalFare.toString();
+                                  }
+                                });
+                              }
                             },
                           ),
                         ),
@@ -517,39 +575,162 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AppTextField(
-                            controller: _estimatedKmController,
-                            label: 'Estimated KM (Total Round Trip) *',
-                            hint: '110',
-                            keyboardType: TextInputType.number,
-                            validator: (v) => Validators.positiveDouble(v, 'Estimated KM'),
-                            onChanged: (_) => setState(() {}),
-                            prefix: const Icon(Icons.straighten_outlined),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Card(
-                            child: SwitchListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                              title: const Text('Use AC', style: TextStyle(fontSize: 13)),
-                              value: _acUsed,
-                              onChanged: _selectedCar?.hasAC == false
-                                  ? null
-                                  : (val) => setState(() => _acUsed = val),
+                    // Inputs based on mode
+                    if (_pricingMode == PricingModes.perKm) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: AppTextField(
+                              controller: _estimatedKmController,
+                              label: 'Estimated KM (Round Trip) *',
+                              hint: '110',
+                              keyboardType: TextInputType.number,
+                              validator: (v) => Validators.positiveDouble(v, 'Estimated KM'),
+                              onChanged: (_) {
+                                setState(() {
+                                  if (!_isManualPrice) {
+                                    _manualPriceController.text = _calculateLiveFare().totalFare.toString();
+                                  }
+                                });
+                              },
+                              prefix: const Icon(Icons.straighten_outlined),
+                              suffixText: 'km',
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: AppTextField(
+                              controller: _ratePerKmController,
+                              label: 'Rate Charged (₹ / KM) *',
+                              hint: '18',
+                              keyboardType: TextInputType.number,
+                              prefixText: '₹ ',
+                              suffixText: '/km',
+                              validator: (v) => Validators.positiveInt(v, 'Rate per KM'),
+                              onChanged: (_) {
+                                setState(() {
+                                  if (!_isManualPrice) {
+                                    _manualPriceController.text = _calculateLiveFare().totalFare.toString();
+                                  }
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: AppTextField(
+                              controller: _packagePriceController,
+                              label: 'Package Price (₹) *',
+                              hint: '2000',
+                              keyboardType: TextInputType.number,
+                              prefixText: '₹ ',
+                              validator: (v) => Validators.positiveInt(v, 'Package Price'),
+                              onChanged: (_) {
+                                setState(() {
+                                  if (!_isManualPrice) {
+                                    _manualPriceController.text = _calculateLiveFare().totalFare.toString();
+                                  }
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: AppTextField(
+                              controller: _estimatedKmController,
+                              label: 'Estimated KM *',
+                              hint: '110',
+                              keyboardType: TextInputType.number,
+                              validator: (v) => Validators.positiveDouble(v, 'Estimated KM'),
+                              onChanged: (_) {
+                                setState(() {
+                                  if (!_isManualPrice) {
+                                    _manualPriceController.text = _calculateLiveFare().totalFare.toString();
+                                  }
+                                });
+                              },
+                              prefix: const Icon(Icons.straighten_outlined),
+                              suffixText: 'km',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    const SizedBox(height: 12),
+
+                    // AC Toggle Card
+                    Card(
+                      child: SwitchListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                        title: const Text('Use Air Conditioner (AC)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        subtitle: Text(
+                          _selectedCar?.hasAC == false
+                              ? 'This car does not have AC'
+                              : (_acUsed ? 'AC rates active' : 'Non-AC rates active'),
+                          style: const TextStyle(fontSize: 11),
                         ),
-                      ],
+                        value: _acUsed,
+                        onChanged: _selectedCar?.hasAC == false
+                            ? null
+                            : (val) {
+                                setState(() {
+                                  _acUsed = val;
+                                  final priv = _selectedCarPrivate;
+                                  if (priv != null) {
+                                    final defaultRate = _acUsed ? priv.perKmRateAC : priv.perKmRateNonAC;
+                                    final defaultPackage = _acUsed ? priv.fixedPriceAC : priv.fixedPriceNonAC;
+                                    _ratePerKmController.text = defaultRate.toString();
+                                    _packagePriceController.text = defaultPackage.toString();
+                                  }
+                                  if (!_isManualPrice) {
+                                    _manualPriceController.text = _calculateLiveFare().totalFare.toString();
+                                  }
+                                });
+                              },
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Total Booking Price (Agreed Fare ₹) - Manually Editable
+                    AppTextField(
+                      controller: _manualPriceController,
+                      label: 'Total Agreed Fare / Booking Price (₹) *',
+                      hint: 'e.g. 2500',
+                      keyboardType: TextInputType.number,
+                      prefixText: '₹ ',
+                      helperText: _isManualPrice
+                          ? 'Custom agreed price active. Tap "Reset Auto" to restore calculated formula.'
+                          : 'Auto-calculated: ${estimatedKm.toStringAsFixed(0)} km × ₹${rateSnapshot.perKmRate}/km. You can edit this price manually.',
+                      suffix: _isManualPrice
+                          ? TextButton.icon(
+                              icon: const Icon(Icons.refresh_rounded, size: 16),
+                              label: const Text('Reset Auto', style: TextStyle(fontSize: 12)),
+                              onPressed: () {
+                                setState(() {
+                                  _isManualPrice = false;
+                                  _manualPriceController.text = _calculateLiveFare().totalFare.toString();
+                                });
+                              },
+                            )
+                          : null,
+                      onChanged: (_) {
+                        setState(() {
+                          _isManualPrice = true;
+                        });
+                      },
+                      validator: (v) => Validators.positiveInt(v, 'Booking Price'),
                     ),
 
                     const SizedBox(height: 12),
                     AppTextField(
                       controller: _advanceController,
-                      label: 'Advance Received (Optional)',
+                      label: 'Advance Received (Optional ₹)',
                       hint: '0',
                       keyboardType: TextInputType.number,
                       prefixText: '₹ ',
@@ -564,7 +745,7 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
 
                     // Live Fare Estimate Card
                     Card(
-                      color: theme.colorScheme.primaryContainer.withAlpha(50),
+                      color: theme.colorScheme.primaryContainer.withAlpha(45),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -574,37 +755,49 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Estimated Fare Breakdown',
+                                  'Estimated Fare & Charge Breakdown',
                                   style: theme.textTheme.labelLarge?.copyWith(
                                     color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary,
-                                    borderRadius: BorderRadius.circular(4),
+                                    color: _isManualPrice ? Colors.deepOrange : theme.colorScheme.primary,
+                                    borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
-                                    _pricingMode == PricingModes.fixed ? 'FIXED' : 'PER KM',
+                                    _isManualPrice ? 'MANUAL PRICE' : (_pricingMode == PricingModes.fixed ? 'FIXED PACKAGE' : 'PER KM'),
                                     style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 12),
                             if (_pricingMode == PricingModes.fixed) ...[
-                              _estimateRow('Base Package (${rateSnapshot.fixedKm} km)', Formatters.currency(rateSnapshot.fixedPrice)),
+                              _estimateRow('Package Base (${rateSnapshot.fixedKm} km)', Formatters.currency(rateSnapshot.fixedPrice)),
                               if (fareResult.extraKmCharge > 0)
                                 _estimateRow('Extra KM Charge (${rateSnapshot.extraKmRate}/km)', Formatters.currency(fareResult.extraKmCharge)),
                             ] else ...[
-                              _estimateRow('Rate per KM', '${Formatters.currency(rateSnapshot.perKmRate)} / km'),
-                              _estimateRow('Base Fare', Formatters.currency(fareResult.baseAmount)),
+                              _estimateRow('Rate We Are Charging', '${Formatters.currency(rateSnapshot.perKmRate)} / km'),
+                              _estimateRow('Calculated Fare (${estimatedKm.toStringAsFixed(0)} km × ₹${rateSnapshot.perKmRate})', Formatters.currency(fareResult.baseAmount)),
                             ],
                             const Divider(height: 16),
-                            _estimateRow('Total Estimated Fare', Formatters.currency(fareResult.totalFare), isBold: true),
-                            if (fareResult.balance < fareResult.totalFare)
-                              _estimateRow('Balance Due', Formatters.currency(fareResult.balance), isBold: true, color: theme.colorScheme.error),
+                            _estimateRow(
+                              _isManualPrice ? 'Agreed Booking Price (Custom)' : 'Total Estimated Fare',
+                              Formatters.currency(effectiveTotalFare),
+                              isBold: true,
+                              color: theme.colorScheme.primary,
+                            ),
+                            if (advance > 0)
+                              _estimateRow('Advance Received', '- ${Formatters.currency(advance)}', color: Colors.green),
+                            _estimateRow(
+                              'Balance to Collect',
+                              Formatters.currency(effectiveBalance),
+                              isBold: true,
+                              color: effectiveBalance > 0 ? theme.colorScheme.error : Colors.green,
+                            ),
                           ],
                         ),
                       ),

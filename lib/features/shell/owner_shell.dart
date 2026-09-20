@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/widgets/car_trip_nav_bar.dart';
 import '../../core/widgets/offline_banner.dart';
 import '../auth/providers/auth_providers.dart';
 
@@ -72,45 +73,46 @@ class _OwnerShellState extends ConsumerState<OwnerShell> {
             Expanded(child: widget.navigationShell),
           ],
         ),
-        bottomNavigationBar: NavigationBar(
+        bottomNavigationBar: CarTripNavBar(
           selectedIndex: _getUiIndex(widget.navigationShell.currentIndex, isSuperAdmin),
-          onDestinationSelected: (uiIndex) {
+          onItemSelected: (uiIndex) {
             final branch = _getBranchIndex(uiIndex, isSuperAdmin);
             widget.navigationShell.goBranch(
               branch,
               initialLocation: branch == widget.navigationShell.currentIndex,
             );
           },
-          destinations: [
-            const NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard_rounded),
+          items: [
+            const CarTripNavItem(
+              icon: Icons.dashboard_outlined,
+              selectedIcon: Icons.dashboard_rounded,
               label: 'Home',
             ),
-            const NavigationDestination(
-              icon: Icon(Icons.directions_car_outlined),
-              selectedIcon: Icon(Icons.directions_car_rounded),
+            const CarTripNavItem(
+              icon: Icons.directions_car_outlined,
+              selectedIcon: Icons.directions_car_rounded,
               label: 'All Cars',
             ),
-            const NavigationDestination(
-              icon: Icon(Icons.route_outlined),
-              selectedIcon: Icon(Icons.route_rounded),
+            const CarTripNavItem(
+              icon: Icons.route_outlined,
+              selectedIcon: Icons.route_rounded,
               label: 'Trips',
             ),
-            const NavigationDestination(
-              icon: Icon(Icons.forum_outlined),
-              selectedIcon: Icon(Icons.forum_rounded),
+            const CarTripNavItem(
+              icon: Icons.forum_outlined,
+              selectedIcon: Icons.forum_rounded,
               label: 'Group',
             ),
             if (isSuperAdmin)
-              const NavigationDestination(
-                icon: Icon(Icons.admin_panel_settings_outlined),
-                selectedIcon: Icon(Icons.admin_panel_settings_rounded),
+              const CarTripNavItem(
+                icon: Icons.admin_panel_settings_outlined,
+                selectedIcon: Icons.admin_panel_settings_rounded,
                 label: 'Console',
+                isHighlight: true,
               ),
-            const NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings_rounded),
+            const CarTripNavItem(
+              icon: Icons.settings_outlined,
+              selectedIcon: Icons.settings_rounded,
               label: 'Settings',
             ),
           ],
