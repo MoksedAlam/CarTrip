@@ -3,6 +3,9 @@
 > **Manage your cars. Know every car's status.**  
 > A complete fleet management and vehicle operations app designed specifically for commercial car owners, tour & travel operators, and drivers.
 
+[![Download Latest APK](https://img.shields.io/badge/Download_APK-v1.0.0-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/MoksedAlam/Carboard/releases/latest/download/FleetBoard.apk)
+[![Latest Release](https://img.shields.io/badge/Release-v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/MoksedAlam/Carboard/releases/latest)
+
 ---
 
 ## 📱 What is FleetBoard?
