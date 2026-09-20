@@ -31,9 +31,9 @@ class OwnerShell extends StatelessWidget {
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.grid_view_outlined),
-            selectedIcon: Icon(Icons.grid_view_rounded),
-            label: 'Fleet',
+            icon: Icon(Icons.directions_car_outlined),
+            selectedIcon: Icon(Icons.directions_car_rounded),
+            label: 'All Cars',
           ),
           NavigationDestination(
             icon: Icon(Icons.route_outlined),
@@ -41,9 +41,9 @@ class OwnerShell extends StatelessWidget {
             label: 'Trips',
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart_rounded),
-            label: 'Reports',
+            icon: Icon(Icons.forum_outlined),
+            selectedIcon: Icon(Icons.forum_rounded),
+            label: 'Group',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

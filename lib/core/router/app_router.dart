@@ -12,6 +12,7 @@ import '../../features/auth/screens/pending_approval_screen.dart';
 import '../../features/cars/screens/car_detail_screen.dart';
 import '../../features/cars/screens/car_form_screen.dart';
 import '../../features/cars/screens/my_cars_screen.dart';
+import '../../features/chat/screens/group_chat_screen.dart';
 import '../../features/expenses/screens/expense_form_screen.dart';
 import '../../features/fleet_board/screens/fleet_board_screen.dart';
 import '../../features/home/screens/home_screen.dart';
@@ -177,8 +178,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/owner/reports',
-                builder: (context, state) => const ReportsScreen(),
+                path: '/owner/community',
+                builder: (context, state) => const GroupChatScreen(),
               ),
             ],
           ),
@@ -193,7 +194,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      // Driver Shell (2 Tabs)
+      // Standalone reports route for owner
+      GoRoute(
+        path: '/owner/reports',
+        builder: (context, state) => const ReportsScreen(),
+      ),
+
+      // Driver Shell (3 Tabs)
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return DriverShell(navigationShell: navigationShell);
@@ -204,6 +211,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/driver/fleet',
                 builder: (context, state) => const FleetBoardScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/driver/community',
+                builder: (context, state) => const GroupChatScreen(),
               ),
             ],
           ),

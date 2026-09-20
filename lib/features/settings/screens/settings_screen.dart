@@ -197,6 +197,38 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 8),
           ],
 
+          if (user?.role == UserRoles.superAdmin) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Text(
+                'Super Admin Tools',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.amber),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.how_to_reg_rounded, color: Colors.amber),
+              title: const Text('User Approvals'),
+              subtitle: const Text('Review pending registrations & verify KYC'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.push('/admin/approvals'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.people_alt_rounded, color: Colors.amber),
+              title: const Text('User Management'),
+              subtitle: const Text('View and manage all registered accounts'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.push('/admin/users'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.directions_car_filled_rounded, color: Colors.amber),
+              title: const Text('Global Fleet (Admin)'),
+              subtitle: const Text('Full system-wide vehicle overview'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.push('/admin/fleet'),
+            ),
+            const Divider(height: 24),
+          ],
+
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Text(

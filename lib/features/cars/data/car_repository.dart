@@ -126,4 +126,30 @@ class CarRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
+
+  Stream<List<Car>> watchAssignedCarsForDriver(String driverEmail) {
+    return _carsCollection
+        .where('assignedDriverEmail', isEqualTo: driverEmail.toLowerCase().trim())
+        .where('isActive', isEqualTo: true)
+        .snapshots()
+        .map((snap) => snap.docs.map(Car.fromDoc).toList());
+  }
+
+  Future<void> updateCarLocation({
+    required String carId,
+    required double latitude,
+    required double longitude,
+    required double speedKmH,
+    required bool isMoving,
+    String? address,
+  }) async {
+    await _carsCollection.doc(carId).update({
+      'latitude': latitude,
+      'longitude': longitude,
+      'speedKmH': speedKmH,
+      'isMoving': isMoving,
+      'lastLocationAddress': address,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
 }

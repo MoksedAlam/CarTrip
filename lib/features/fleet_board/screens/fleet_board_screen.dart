@@ -43,7 +43,7 @@ class _FleetBoardScreenState extends ConsumerState<FleetBoardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fleet Board'),
+        title: const Text('All Cars'),
         actions: [
           if (currentUser?.role == UserRoles.owner)
             TextButton.icon(

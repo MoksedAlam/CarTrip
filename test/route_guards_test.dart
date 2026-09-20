@@ -101,7 +101,7 @@ void main() {
       expect(dest2, RouteGuards.blockedPath);
     });
 
-    test('Super admin redirects to admin shell', () {
+    test('Super admin redirects to owner home with full owner capabilities', () {
       final dest = RouteGuards.guard(
         isAuthInitialized: true,
         isSignedIn: true,
@@ -116,7 +116,24 @@ void main() {
         ),
         currentPath: '/splash',
       );
-      expect(dest, RouteGuards.adminApprovalsPath);
+      expect(dest, RouteGuards.ownerHomePath);
+
+      // Super admin can access /admin routes freely without redirection
+      final adminDest = RouteGuards.guard(
+        isAuthInitialized: true,
+        isSignedIn: true,
+        isUserDocLoaded: true,
+        userDoc: const AppUser(
+          uid: '123',
+          email: 'admin@example.com',
+          name: 'Admin',
+          role: UserRoles.superAdmin,
+          status: UserStatuses.active,
+          registrationSubmitted: true,
+        ),
+        currentPath: '/admin/approvals',
+      );
+      expect(adminDest, isNull);
     });
 
     test('Active owner redirects to owner home', () {

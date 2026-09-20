@@ -25,11 +25,15 @@ class _CarFormScreenState extends ConsumerState<CarFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Public car fields
+  String _brand = 'Maruti Suzuki';
   final _nameController = TextEditingController();
   final _numberController = TextEditingController();
-  final _seatsController = TextEditingController(text: '4');
-  String _carType = CarTypes.sedan;
-  String _fuelType = FuelTypes.petrol;
+  final _seatsController = TextEditingController(text: '5');
+  final _carPhotoController = TextEditingController();
+  final _driverEmailController = TextEditingController();
+  final _driverNameController = TextEditingController();
+  String _carType = CarTypes.suv;
+  String _fuelType = FuelTypes.petrolCng;
   bool _hasAC = true;
 
   // Private rates
@@ -83,6 +87,10 @@ class _CarFormScreenState extends ConsumerState<CarFormScreen> {
     _carType = car.carType;
     _fuelType = car.fuelType;
     _hasAC = car.hasAC;
+    _brand = car.brand;
+    _carPhotoController.text = car.carPhotoUrl ?? '';
+    _driverEmailController.text = car.assignedDriverEmail ?? '';
+    _driverNameController.text = car.assignedDriverName ?? '';
 
     if (private != null) {
       _fixedKmController.text = private.fixedKm.toString();
@@ -134,13 +142,18 @@ class _CarFormScreenState extends ConsumerState<CarFormScreen> {
         id: carId,
         ownerId: user.uid,
         ownerName: user.name,
-        ownerPhone: user.showPhoneOnBoard ? user.phone : null,
+        ownerPhone: user.phone.isNotEmpty ? user.phone : (user.showPhoneOnBoard ? user.phone : null),
+        ownerPhotoUrl: user.photoUrl,
+        brand: _brand,
         carName: _nameController.text.trim(),
         carNumber: Formatters.cleanCarNumber(_numberController.text),
         carType: _carType,
-        seats: int.tryParse(_seatsController.text.trim()) ?? 4,
+        seats: int.tryParse(_seatsController.text.trim()) ?? 5,
         hasAC: _hasAC,
         fuelType: _fuelType,
+        carPhotoUrl: _carPhotoController.text.trim().isNotEmpty ? _carPhotoController.text.trim() : null,
+        assignedDriverEmail: _driverEmailController.text.trim().isNotEmpty ? _driverEmailController.text.trim().toLowerCase() : null,
+        assignedDriverName: _driverNameController.text.trim().isNotEmpty ? _driverNameController.text.trim() : null,
       );
 
       final carPrivate = CarPrivate(
@@ -222,10 +235,52 @@ class _CarFormScreenState extends ConsumerState<CarFormScreen> {
                 // 1. Vehicle Specifications
                 Text('Vehicle Specifications', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 12),
+                AppDropdown<String>(
+                  label: 'Brand / Make *',
+                  value: _brand,
+                  items: CarBrandModels.brands.map((b) {
+                    return DropdownMenuItem(value: b, child: Text(b));
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) setState(() => _brand = val);
+                  },
+                ),
+                if ((CarBrandModels.brandModels[_brand] ?? []).isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text('Quick Model Suggestions:', style: theme.textTheme.labelSmall),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: (CarBrandModels.brandModels[_brand] ?? []).map((m) {
+                      final isSelected = _nameController.text == m;
+                      return ChoiceChip(
+                        label: Text(m, style: const TextStyle(fontSize: 12)),
+                        selected: isSelected,
+                        onSelected: (_) {
+                          setState(() {
+                            _nameController.text = m;
+                            if (m == 'Ertiga' || m == 'Scorpio' || m == 'Bolero' || m == 'Innova' || m == 'Innova Crysta' || m == 'XL6' || m == 'Carens' || m == 'Safari' || m == 'XUV700') {
+                              _carType = CarTypes.muv;
+                              _seatsController.text = '7';
+                            } else if (m == 'Dzire' || m == 'Aura' || m == 'Tigor' || m == 'City' || m == 'Verna') {
+                              _carType = CarTypes.sedan;
+                              _seatsController.text = '5';
+                            } else {
+                              _seatsController.text = '5';
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                const SizedBox(height: 8),
                 AppTextField(
                   controller: _nameController,
                   label: 'Car Model / Name *',
-                  hint: 'e.g. Maruti Suzuki Dzire, Ertiga',
+                  hint: 'e.g. Ertiga, Dzire, Scorpio, Bolero',
                   validator: (v) => Validators.requiredField(v, 'Car model is required'),
                   textCapitalization: TextCapitalization.words,
                   prefix: const Icon(Icons.directions_car_outlined),
@@ -276,7 +331,7 @@ class _CarFormScreenState extends ConsumerState<CarFormScreen> {
                       child: AppTextField(
                         controller: _seatsController,
                         label: 'Seating Capacity *',
-                        hint: '4',
+                        hint: '5',
                         keyboardType: TextInputType.number,
                         validator: (v) => Validators.positiveInt(v, 'Seats'),
                         prefix: const Icon(Icons.event_seat_outlined),
@@ -294,6 +349,50 @@ class _CarFormScreenState extends ConsumerState<CarFormScreen> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: ['4 Seater', '5 Seater', '7 Seater', '8 Seater'].map((s) {
+                    final numSeats = s.split(' ')[0];
+                    return ActionChip(
+                      label: Text(s, style: const TextStyle(fontSize: 12)),
+                      onPressed: () => setState(() => _seatsController.text = numSeats),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 12),
+                AppTextField(
+                  controller: _carPhotoController,
+                  label: 'Car Photo URL (Optional)',
+                  hint: 'https://example.com/car.jpg',
+                  prefix: const Icon(Icons.image_outlined),
+                ),
+
+                const Divider(height: 36),
+
+                // Driver Assignment
+                Text('Assigned Driver (Optional)', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 4),
+                Text(
+                  'Driver ka email enter karein. Jab driver is email se CarTrip me login karega, toh usko ye gaadi show hogi.',
+                  style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
+                ),
+                const SizedBox(height: 12),
+                AppTextField(
+                  controller: _driverEmailController,
+                  label: "Driver's Login Email",
+                  hint: 'driver@gmail.com',
+                  keyboardType: TextInputType.emailAddress,
+                  prefix: const Icon(Icons.person_outline_rounded),
+                ),
+                const SizedBox(height: 12),
+                AppTextField(
+                  controller: _driverNameController,
+                  label: 'Driver Name',
+                  hint: 'e.g. Ramesh Kumar',
+                  textCapitalization: TextCapitalization.words,
+                  prefix: const Icon(Icons.badge_outlined),
                 ),
 
                 const Divider(height: 36),

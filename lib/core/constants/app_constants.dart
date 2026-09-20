@@ -52,10 +52,96 @@ class FuelTypes {
   static const String petrol = 'Petrol';
   static const String diesel = 'Diesel';
   static const String cng = 'CNG';
+  static const String petrolCng = 'Petrol + CNG';
   static const String electric = 'Electric';
   static const String hybrid = 'Hybrid';
 
-  static const List<String> all = [petrol, diesel, cng, electric, hybrid];
+  static const List<String> all = [petrol, diesel, cng, petrolCng, electric, hybrid];
+}
+
+class SeatingCapacities {
+  static const String seats4 = '4 Seater';
+  static const String seats5 = '5 Seater';
+  static const String seats6 = '6 Seater';
+  static const String seats7 = '7 Seater';
+  static const String seats8 = '8 Seater';
+  static const String seats9Plus = '9+ Seater';
+
+  static const List<String> all = [seats4, seats5, seats6, seats7, seats8, seats9Plus];
+}
+
+class CarBrandModels {
+  static const Map<String, List<String>> brandModels = {
+    'Maruti Suzuki': [
+      'Ertiga',
+      'Dzire',
+      'Swift',
+      'Brezza',
+      'WagonR',
+      'Baleno',
+      'Tour S',
+      'Eeco',
+      'XL6',
+      'Fronx',
+      'Grand Vitara',
+    ],
+    'Mahindra': [
+      'Scorpio',
+      'Scorpio-N',
+      'Scorpio Classic',
+      'Bolero',
+      'Bolero Neo',
+      'XUV700',
+      'XUV300',
+      'XUV3XO',
+      'Thar',
+      'Marazzo',
+    ],
+    'Toyota': [
+      'Innova',
+      'Innova Crysta',
+      'Innova Hycross',
+      'Rumion',
+      'Fortuner',
+      'Glanza',
+      'Urban Cruiser Hyryder',
+      'Etios',
+    ],
+    'Tata': [
+      'Nexon',
+      'Punch',
+      'Tiago',
+      'Tigor',
+      'Harrier',
+      'Safari',
+      'Altroz',
+      'Curvv',
+    ],
+    'Hyundai': [
+      'Creta',
+      'Venue',
+      'Aura',
+      'Grand i10 Nios',
+      'i20',
+      'Exter',
+      'Verna',
+      'Alcazar',
+    ],
+    'Honda': [
+      'Amaze',
+      'City',
+      'Elevate',
+    ],
+    'Kia': [
+      'Carens',
+      'Seltos',
+      'Sonet',
+      'Carnival',
+    ],
+    'Other': [],
+  };
+
+  static List<String> get brands => brandModels.keys.toList();
 }
 
 class PricingModes {

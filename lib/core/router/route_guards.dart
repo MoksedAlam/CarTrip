@@ -50,11 +50,17 @@ class RouteGuards {
 
     // 6. Role-based routing
     if (userDoc.role == UserRoles.superAdmin) {
-      // Super admin can access admin routes and settings
-      if (currentPath.startsWith('/admin') || currentPath.startsWith('/settings')) {
+      // Super admin has full owner capabilities + admin privileges
+      if (currentPath.startsWith('/admin') ||
+          currentPath.startsWith('/owner') ||
+          currentPath.startsWith('/settings') ||
+          currentPath.startsWith('/cars') ||
+          currentPath.startsWith('/trips') ||
+          currentPath.startsWith('/expenses') ||
+          currentPath.startsWith('/fleet-board')) {
         return null;
       }
-      return adminApprovalsPath;
+      return ownerHomePath;
     }
 
     if (userDoc.role == UserRoles.driver) {
