@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/services/location_service.dart';
 import '../../../core/utils/fare_calculator.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/validators.dart';
@@ -92,6 +93,7 @@ class _CompleteTripScreenState extends ConsumerState<CompleteTripScreen> {
     setState(() => _isSubmitting = true);
 
     try {
+      final loc = await ref.read(locationServiceProvider).getCurrentLocation();
       await ref.read(tripRepositoryProvider).completeTrip(
         tripId: trip.id,
         actualKm: actualKm,
@@ -102,6 +104,8 @@ class _CompleteTripScreenState extends ConsumerState<CompleteTripScreen> {
         extraChargesTotal: calc.extraChargesTotal,
         totalFare: calc.totalFare,
         notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+        latitude: loc?.latitude,
+        longitude: loc?.longitude,
       );
 
       if (mounted) {

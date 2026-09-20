@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../core/utils/map_launcher.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../providers/car_providers.dart';
+import '../widgets/live_car_map_sheet.dart';
 
 class MyCarsScreen extends ConsumerWidget {
   const MyCarsScreen({super.key});
@@ -118,15 +118,9 @@ class MyCarsScreen extends ConsumerWidget {
                             ),
                             IconButton.filledTonal(
                               icon: const Icon(Icons.location_on_rounded, size: 16),
-                              tooltip: 'Car Location on Maps',
+                              tooltip: 'Live Car Map & Location',
                               visualDensity: VisualDensity.compact,
-                              onPressed: () => MapLauncher.openCarLocation(
-                                context: context,
-                                latitude: car.latitude,
-                                longitude: car.longitude,
-                                address: car.lastLocationAddress,
-                                label: '${car.carName} (${car.carNumber})',
-                              ),
+                              onPressed: () => LiveCarMapSheet.show(context, car: car),
                             ),
                           ],
                         ),

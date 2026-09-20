@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/services/location_service.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/map_launcher.dart';
 import '../../../core/widgets/app_button.dart';
@@ -10,6 +11,8 @@ import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../auth/providers/auth_providers.dart';
+import '../../cars/providers/car_providers.dart';
+import '../../cars/widgets/live_car_map_sheet.dart';
 import '../models/trip.dart';
 import '../providers/trip_providers.dart';
 
@@ -67,9 +70,12 @@ class TripDetailScreen extends ConsumerWidget {
     if (shouldStart == true) {
       try {
         final odo = double.tryParse(odoController.text.trim());
+        final loc = await ref.read(locationServiceProvider).getCurrentLocation();
         await ref.read(tripRepositoryProvider).startTrip(
           tripId: trip.id,
           startOdometer: odo,
+          latitude: loc?.latitude,
+          longitude: loc?.longitude,
         );
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -408,17 +414,33 @@ class TripDetailScreen extends ConsumerWidget {
                           style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
                         ),
                         const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton.tonalIcon(
-                            icon: const Icon(Icons.navigation_rounded, size: 16),
-                            label: const Text('Open Route on Google Maps'),
-                            onPressed: () => MapLauncher.openRoute(
-                              context: context,
-                              pickup: trip.pickupLocation,
-                              destination: trip.destination,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: FilledButton.tonalIcon(
+                                icon: const Icon(Icons.navigation_rounded, size: 16),
+                                label: const Text('Route on Maps'),
+                                onPressed: () => MapLauncher.openRoute(
+                                  context: context,
+                                  pickup: trip.pickupLocation,
+                                  destination: trip.destination,
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                icon: const Icon(Icons.my_location, size: 16),
+                                label: const Text('Live Car Map'),
+                                onPressed: () async {
+                                  final car = await ref.read(carDetailStreamProvider(trip.carId).future);
+                                  if (car != null && context.mounted) {
+                                    LiveCarMapSheet.show(context, car: car);
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                         if (trip.cancelReason != null) ...[
                           const SizedBox(height: 8),

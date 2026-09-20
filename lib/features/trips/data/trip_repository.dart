@@ -148,6 +148,8 @@ class TripRepository {
   Future<void> startTrip({
     required String tripId,
     double? startOdometer,
+    double? latitude,
+    double? longitude,
   }) async {
     final trip = await getTrip(tripId);
     if (trip == null) throw Exception('Trip not found');
@@ -163,14 +165,24 @@ class TripRepository {
     if (startOdometer != null) {
       tripUpdates['startOdometer'] = startOdometer;
     }
+    if (latitude != null && longitude != null) {
+      tripUpdates['startLatitude'] = latitude;
+      tripUpdates['startLongitude'] = longitude;
+    }
     batch.update(_tripsCollection.doc(tripId), tripUpdates);
 
-    batch.update(_carsCollection.doc(trip.carId), {
+    final Map<String, dynamic> carUpdates = {
       'hasOngoingTrip': true,
       'busyUntil': Timestamp.fromDate(trip.plannedEndAt),
       'boardNote': trip.showDestinationOnBoard ? trip.destination : null,
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    };
+    if (latitude != null && longitude != null) {
+      carUpdates['latitude'] = latitude;
+      carUpdates['longitude'] = longitude;
+      carUpdates['lastLocationTime'] = Timestamp.fromDate(now);
+    }
+    batch.update(_carsCollection.doc(trip.carId), carUpdates);
 
     await batch.commit();
   }
@@ -186,6 +198,8 @@ class TripRepository {
     required int extraChargesTotal,
     required int totalFare,
     String? notes,
+    double? latitude,
+    double? longitude,
   }) async {
     final trip = await getTrip(tripId);
     if (trip == null) throw Exception('Trip not found');
@@ -224,8 +238,20 @@ class TripRepository {
     if (notes != null) {
       tripUpdates['notes'] = notes;
     }
+    if (latitude != null && longitude != null) {
+      tripUpdates['endLatitude'] = latitude;
+      tripUpdates['endLongitude'] = longitude;
+    }
 
     batch.update(_tripsCollection.doc(tripId), tripUpdates);
+
+    if (latitude != null && longitude != null) {
+      batch.update(_carsCollection.doc(trip.carId), {
+        'latitude': latitude,
+        'longitude': longitude,
+        'lastLocationTime': Timestamp.fromDate(now),
+      });
+    }
 
     await _syncCarAvailabilityInBatch(
       batch: batch,

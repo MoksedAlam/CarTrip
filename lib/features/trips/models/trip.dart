@@ -43,6 +43,10 @@ class Trip {
   final String? givenByOwnerName;
   final String? givenByOwnerId;
   final int referralCommission;
+  final double? startLatitude;
+  final double? startLongitude;
+  final double? endLatitude;
+  final double? endLongitude;
   final String monthKey;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -85,6 +89,10 @@ class Trip {
     this.givenByOwnerName,
     this.givenByOwnerId,
     this.referralCommission = 0,
+    this.startLatitude,
+    this.startLongitude,
+    this.endLatitude,
+    this.endLongitude,
     required this.monthKey,
     this.createdAt,
     this.updatedAt,
@@ -133,6 +141,10 @@ class Trip {
     String? givenByOwnerName,
     String? givenByOwnerId,
     int? referralCommission,
+    double? startLatitude,
+    double? startLongitude,
+    double? endLatitude,
+    double? endLongitude,
     String? monthKey,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -175,6 +187,10 @@ class Trip {
       givenByOwnerName: givenByOwnerName ?? this.givenByOwnerName,
       givenByOwnerId: givenByOwnerId ?? this.givenByOwnerId,
       referralCommission: referralCommission ?? this.referralCommission,
+      startLatitude: startLatitude ?? this.startLatitude,
+      startLongitude: startLongitude ?? this.startLongitude,
+      endLatitude: endLatitude ?? this.endLatitude,
+      endLongitude: endLongitude ?? this.endLongitude,
       monthKey: monthKey ?? this.monthKey,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -219,6 +235,10 @@ class Trip {
       'givenByOwnerName': givenByOwnerName,
       'givenByOwnerId': givenByOwnerId,
       'referralCommission': referralCommission,
+      'startLatitude': startLatitude,
+      'startLongitude': startLongitude,
+      'endLatitude': endLatitude,
+      'endLongitude': endLongitude,
       'monthKey': monthKey,
       'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -285,6 +305,10 @@ class Trip {
       givenByOwnerName: map['givenByOwnerName'] as String?,
       givenByOwnerId: map['givenByOwnerId'] as String?,
       referralCommission: (map['referralCommission'] as num?)?.toInt() ?? 0,
+      startLatitude: (map['startLatitude'] as num?)?.toDouble(),
+      startLongitude: (map['startLongitude'] as num?)?.toDouble(),
+      endLatitude: (map['endLatitude'] as num?)?.toDouble(),
+      endLongitude: (map['endLongitude'] as num?)?.toDouble(),
       monthKey: map['monthKey'] as String? ?? MonthKey.fromDateTime(actualEndAt ?? startAt),
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate(),

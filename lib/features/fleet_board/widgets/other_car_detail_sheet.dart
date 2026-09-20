@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../cars/models/car.dart';
+import '../../cars/widgets/live_car_map_sheet.dart';
 import '../../trips/screens/reservation_form_screen.dart';
 
 class OtherCarDetailSheet extends StatelessWidget {
@@ -55,18 +56,7 @@ class OtherCarDetailSheet extends StatelessWidget {
   }
 
   Future<void> _handleOpenMap(BuildContext context) async {
-    final lat = car.latitude ?? 28.6139;
-    final lng = car.longitude ?? 77.2090;
-    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
-    try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (_) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open Google Maps.')),
-        );
-      }
-    }
+    LiveCarMapSheet.show(context, car: car);
   }
 
   @override

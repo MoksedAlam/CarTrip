@@ -19,8 +19,15 @@ class MapLauncher {
     } else if (address != null && address.trim().isNotEmpty) {
       uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address.trim())}');
     } else {
-      // Default to central coordinates if no GPS is recorded yet
-      uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=28.6139,77.2090');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No GPS location recorded for this car yet.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
     }
 
     try {

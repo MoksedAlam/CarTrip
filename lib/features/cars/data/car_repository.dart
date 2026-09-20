@@ -139,17 +139,20 @@ class CarRepository {
     required String carId,
     required double latitude,
     required double longitude,
-    required double speedKmH,
-    required bool isMoving,
+    double? speedKmH,
+    bool? isMoving,
     String? address,
   }) async {
-    await _carsCollection.doc(carId).update({
+    final Map<String, dynamic> data = {
       'latitude': latitude,
       'longitude': longitude,
-      'speedKmH': speedKmH,
-      'isMoving': isMoving,
-      'lastLocationAddress': address,
+      'lastLocationTime': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    };
+    if (speedKmH != null) data['speedKmH'] = speedKmH;
+    if (isMoving != null) data['isMoving'] = isMoving;
+    if (address != null && address.isNotEmpty) data['lastLocationAddress'] = address;
+
+    await _carsCollection.doc(carId).update(data);
   }
 }

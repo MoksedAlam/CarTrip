@@ -23,6 +23,7 @@ class Car {
   final double? speedKmH;
   final bool isMoving;
   final String? lastLocationAddress;
+  final DateTime? lastLocationTime;
   final bool isMaintenance;
   final bool hasOngoingTrip;
   final DateTime? busyUntil;
@@ -54,6 +55,7 @@ class Car {
     this.speedKmH,
     this.isMoving = false,
     this.lastLocationAddress,
+    this.lastLocationTime,
     this.isMaintenance = false,
     this.hasOngoingTrip = false,
     this.busyUntil,
@@ -147,6 +149,7 @@ class Car {
       'speedKmH': speedKmH,
       'isMoving': isMoving,
       'lastLocationAddress': lastLocationAddress,
+      'lastLocationTime': lastLocationTime != null ? Timestamp.fromDate(lastLocationTime!) : null,
       'isMaintenance': isMaintenance,
       'hasOngoingTrip': hasOngoingTrip,
       'busyUntil': busyUntil != null ? Timestamp.fromDate(busyUntil!) : null,
@@ -186,6 +189,7 @@ class Car {
       speedKmH: (map['speedKmH'] as num?)?.toDouble(),
       isMoving: map['isMoving'] as bool? ?? false,
       lastLocationAddress: map['lastLocationAddress'] as String?,
+      lastLocationTime: (map['lastLocationTime'] as Timestamp?)?.toDate(),
       isMaintenance: map['isMaintenance'] as bool? ?? false,
       hasOngoingTrip: map['hasOngoingTrip'] as bool? ?? false,
       busyUntil: (map['busyUntil'] as Timestamp?)?.toDate(),
@@ -217,6 +221,7 @@ class Car {
     double? speedKmH,
     bool? isMoving,
     String? lastLocationAddress,
+    DateTime? lastLocationTime,
     bool? isMaintenance,
     bool? hasOngoingTrip,
     DateTime? busyUntil,
@@ -247,6 +252,7 @@ class Car {
       speedKmH: speedKmH ?? this.speedKmH,
       isMoving: isMoving ?? this.isMoving,
       lastLocationAddress: lastLocationAddress ?? this.lastLocationAddress,
+      lastLocationTime: lastLocationTime ?? this.lastLocationTime,
       isMaintenance: isMaintenance ?? this.isMaintenance,
       hasOngoingTrip: hasOngoingTrip ?? this.hasOngoingTrip,
       busyUntil: busyUntil ?? this.busyUntil,

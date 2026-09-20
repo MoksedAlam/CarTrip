@@ -227,6 +227,13 @@ class PaymentStatuses {
 
 class ExpenseCategories {
   static const String fuel = 'fuel';
+  static const String fuelPetrol = 'fuel_petrol';
+  static const String fuelCng = 'fuel_cng';
+  static const String fuelDiesel = 'fuel_diesel';
+  static const String food = 'food';
+  static const String emi = 'emi';
+  static const String debtGiven = 'debt_given';
+  static const String debtTaken = 'debt_taken';
   static const String toll = 'toll';
   static const String parking = 'parking';
   static const String driverSalary = 'driverSalary';
@@ -241,6 +248,13 @@ class ExpenseCategories {
 
   static const List<String> all = [
     fuel,
+    fuelPetrol,
+    fuelCng,
+    fuelDiesel,
+    food,
+    emi,
+    debtGiven,
+    debtTaken,
     toll,
     parking,
     driverSalary,
@@ -257,7 +271,21 @@ class ExpenseCategories {
   static String label(String category) {
     switch (category) {
       case fuel:
-        return 'Fuel';
+        return 'Fuel (Combined)';
+      case fuelPetrol:
+        return 'Petrol';
+      case fuelCng:
+        return 'CNG';
+      case fuelDiesel:
+        return 'Diesel';
+      case food:
+        return 'Food & Meals';
+      case emi:
+        return 'Car EMI / Loan';
+      case debtGiven:
+        return 'Debt Given (Lent)';
+      case debtTaken:
+        return 'Debt Taken (Borrowed)';
       case toll:
         return 'Toll';
       case parking:
@@ -279,7 +307,7 @@ class ExpenseCategories {
       case cleaning:
         return 'Cleaning';
       default:
-        return 'Other';
+        return 'Other / Misc';
     }
   }
 }

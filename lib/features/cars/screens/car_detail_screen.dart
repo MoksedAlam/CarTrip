@@ -12,6 +12,7 @@ import '../../../core/widgets/status_chip.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../models/car.dart';
 import '../providers/car_providers.dart';
+import '../widgets/live_car_map_sheet.dart';
 
 class CarDetailScreen extends ConsumerWidget {
   final String carId;
@@ -257,14 +258,8 @@ class CarDetailScreen extends ConsumerWidget {
                           width: double.infinity,
                           child: FilledButton.tonalIcon(
                             icon: const Icon(Icons.map_rounded, size: 18),
-                            label: const Text('View Car Location on Google Maps'),
-                            onPressed: () => MapLauncher.openCarLocation(
-                              context: context,
-                              latitude: car.latitude,
-                              longitude: car.longitude,
-                              address: car.lastLocationAddress,
-                              label: '${car.carName} (${car.carNumber})',
-                            ),
+                            label: const Text('View Live Car Map & Location'),
+                            onPressed: () => LiveCarMapSheet.show(context, car: car),
                           ),
                         ),
                       ],

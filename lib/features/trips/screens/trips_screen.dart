@@ -51,7 +51,18 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
   IconData _categoryIcon(String category) {
     switch (category) {
       case ExpenseCategories.fuel:
+      case ExpenseCategories.fuelPetrol:
+      case ExpenseCategories.fuelCng:
+      case ExpenseCategories.fuelDiesel:
         return Icons.local_gas_station_outlined;
+      case ExpenseCategories.food:
+        return Icons.restaurant_outlined;
+      case ExpenseCategories.emi:
+        return Icons.account_balance_outlined;
+      case ExpenseCategories.debtGiven:
+        return Icons.arrow_upward_rounded;
+      case ExpenseCategories.debtTaken:
+        return Icons.arrow_downward_rounded;
       case ExpenseCategories.toll:
         return Icons.toll_outlined;
       case ExpenseCategories.parking:
@@ -308,9 +319,33 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                                     ),
                                     title: Row(
                                       children: [
-                                        Text(ExpenseCategories.label(exp.category), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                        Flexible(
+                                          child: Text(
+                                            exp.items.length > 1 ? '${ExpenseCategories.label(exp.category)} (+${exp.items.length - 1} items)' : ExpenseCategories.label(exp.category),
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (exp.items.length > 1) ...[
+                                          const SizedBox(width: 6),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: theme.colorScheme.primaryContainer,
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              '${exp.items.length} ITEMS',
+                                              style: TextStyle(
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold,
+                                                color: theme.colorScheme.primary,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                         if (exp.isExtra) ...[
-                                          const SizedBox(width: 8),
+                                          const SizedBox(width: 6),
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                             decoration: BoxDecoration(
@@ -329,8 +364,10 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                                         ],
                                       ],
                                     ),
-                                    subtitle: Text('${exp.carNumber} • ${Formatters.date(exp.date)}${exp.note != null ? "\n${exp.note}" : ""}'),
-                                    isThreeLine: exp.note != null,
+                                    subtitle: Text(
+                                      '${exp.carNumber} • ${Formatters.date(exp.date)}${exp.items.length > 1 ? "\n${exp.items.map((i) => "• ${ExpenseCategories.label(i.category)}: ${Formatters.currency(i.amount)}").join("\n")}" : (exp.note != null ? "\n${exp.note}" : "")}',
+                                    ),
+                                    isThreeLine: exp.items.length > 1 || exp.note != null,
                                     trailing: Text(
                                       Formatters.currency(exp.amount),
                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
