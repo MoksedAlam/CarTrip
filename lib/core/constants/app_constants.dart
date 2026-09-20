@@ -216,6 +216,9 @@ class AppConstants {
   static const String privacyPolicySummary =
       'FleetBoard collects your Google account name, email, phone number, and optional UPI ID. Customer and trip details entered by you are private to your account and never shared with other owners or drivers. The public Fleet Board displays only vehicle availability status and vehicle models. You may delete your account and all associated data at any time from Settings.';
 
+  // Support & Contact
+  static const String supportEmail = 'hello@ridatech.in';
+
   // GitHub Auto-Update Configuration
   static const String githubOwner = 'MoksedAlam';
   static const String githubRepo = 'Carboard';

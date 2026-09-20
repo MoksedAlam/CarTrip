@@ -36,13 +36,15 @@
 - **Manual Check**: Available anytime under **Settings &rarr; Check for Updates**.
 - **In-App Download & Install**: Downloads the latest `.apk` with an interactive progress bar and launches the Android Package Installer automatically.
 
-### 6. 🔒 Role-Based Access & Security
+### 6. 🔒 Roles & 1-Tap Email Approval
 - **Google Sign-In**: Secure authentication with mandatory compliance declarations.
 - **Roles**:
-  - `superAdmin`: Approves owner and driver registrations, manages system-wide fleet access.
-  - `owner`: Full access to vehicles, bookings, expenses, reports, and payments.
-  - `driver`: Read-only view of assigned fleet vehicles and trip logs.
-- **Privacy & GDPR Compliant**: Account and data deletion features built-in.
+  - `owner`: Full control over vehicles, reservations, expenses, financial reports, and UPI payments.
+  - `driver`: View assigned fleet vehicles, ongoing trip logs, and vehicle availability.
+- **1-Tap Email Approval Workflow**:
+  - When a new owner or driver registers, their account is placed in review with a direct action to email `hello@ridatech.in`.
+  - Tapping the email button automatically launches Gmail with all user details (Name, Role, Phone, Email, UID) pre-filled, allowing the user to add extra notes and request instant activation.
+- **Privacy Compliant**: Built-in complete account and vehicle data deletion controls from Settings.
 
 ---
 

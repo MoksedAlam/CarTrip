@@ -130,9 +130,9 @@ class _AboutScreenState extends State<AboutScreen> {
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Contact: support@fleetboard.local',
-              style: TextStyle(fontSize: 13),
+            Text(
+              'Contact: ${AppConstants.supportEmail}',
+              style: const TextStyle(fontSize: 13),
             ),
             const SizedBox(height: 32),
           ],
