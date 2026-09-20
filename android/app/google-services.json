@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "941284151936",
+    "project_id": "ridatrip-fe5ef",
+    "storage_bucket": "ridatrip-fe5ef.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941284151936:android:0011c0c95f448727758c65",
+        "android_client_info": {
+          "package_name": "com.fleetboard.fleetboard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "941284151936-mn4krcusar3tb39imo663nop8lda0djp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fleetboard.fleetboard",
+            "certificate_hash": "4e4ec77440280e4936c0cc760b45102c6d164813"
+          }
+        },
+        {
+          "client_id": "941284151936-nj4j092tvlc9i6vaibpse1uclq4cbol6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaSC4xDmEJtggzbs64E_Oktfb8rhI6gEI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "941284151936-nj4j092tvlc9i6vaibpse1uclq4cbol6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
