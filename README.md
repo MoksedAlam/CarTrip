@@ -1,104 +1,100 @@
 # FleetBoard 🚗📋
 
 > **Manage your cars. Know every car's status.**  
-> A production-ready Flutter fleet management application for vehicle owners, fleet operators, and drivers. Built with Firebase and Material 3 Flat Design.
+> A complete fleet management and vehicle operations app designed specifically for commercial car owners, tour & travel operators, and drivers.
 
 ---
 
-## ✨ Features
+## 📱 What is FleetBoard?
 
-### 1. 🚦 Real-Time Fleet Status & Public Fleet Board
-- **Dynamic Status Derivation**: Automatically calculates vehicle status (`Available` &rarr; `Reserved` &rarr; `On Trip` &rarr; `Maintenance`) without stale database writes.
-- **Public / Private Segregation**: Public Fleet Board displays only vehicle availability and models. Sensitive customer names, phone numbers, and financial rates remain private to the owner.
-- **Multi-criteria Filtering**: Search by vehicle registration, model, or filter by car type (`Hatchback`, `Sedan`, `SUV`, `MUV`).
+**FleetBoard** simplifies commercial vehicle tracking and daily business operations into a single, clean mobile app.
 
-### 2. 📅 Trip & Reservation Lifecycle
-- **Overlap Prevention**: Intelligent date/time booking checks to avoid vehicle double-booking.
-- **Dual Fare Modes**:
-  - **Fixed Package**: Base package KM + extra KM rate.
-  - **Per-Km Rate**: Dynamic odometer tracking.
-- **Trip Lifecycle**: Complete tracking from **Reserved** &rarr; **Ongoing** &rarr; **Completed**.
-- **Dynamic UPI QR Code**: Generates instant `upi://pay` payment QR codes for customer settlement directly to the vehicle owner.
-
-### 3. ⛽ Comprehensive Expense Management
-- Track expenses categorized by: **Fuel, Maintenance, Toll/Fastag, Challan, Insurance, Cleaning, and Other**.
-- Automatic association with specific vehicles and monthly fiscal periods.
-
-### 4. 📊 Financial Analytics & Reports
-- Monthly revenue, expenses, and net profit calculations.
-- Historical trend visualization with interactive charts (`fl_chart`).
-- Vehicle-wise performance metrics and breakdown tables.
-- **One-Tap WhatsApp Sharing**: Generate and share clean text financial summaries with business partners or accountants.
-
-### 5. 🔄 In-App Auto Update (Direct via GitHub Releases)
-- **Zero-Friction Updates**: No Google Play Store required.
-- **Background Checks**: The app silently checks GitHub Releases for new updates on launch.
-- **Manual Check**: Available anytime under **Settings &rarr; Check for Updates**.
-- **In-App Download & Install**: Downloads the latest `.apk` with an interactive progress bar and launches the Android Package Installer automatically.
-
-### 6. 🔒 Roles & 1-Tap Email Approval
-- **Google Sign-In**: Secure authentication with mandatory compliance declarations.
-- **Roles**:
-  - `owner`: Full control over vehicles, reservations, expenses, financial reports, and UPI payments.
-  - `driver`: View assigned fleet vehicles, ongoing trip logs, and vehicle availability.
-- **1-Tap Email Approval Workflow**:
-  - When a new owner or driver registers, their account is placed in review with a direct action to email `hello@ridatech.in`.
-  - Tapping the email button automatically launches Gmail with all user details (Name, Role, Phone, Email, UID) pre-filled, allowing the user to add extra notes and request instant activation.
-- **Privacy Compliant**: Built-in complete account and vehicle data deletion controls from Settings.
+Whether you operate a single car or manage a commercial taxi fleet, FleetBoard gives you:
+- Complete visibility into vehicle availability in real time.
+- Automated trip scheduling and overlap-free customer bookings.
+- Accurate dynamic fare calculation (Fixed Package or Per-Km).
+- Direct-to-bank UPI payment QR code generation for customers.
+- Expense tracking (fuel, maintenance, tolls, challans) per car.
+- Monthly profit/loss analytics with instant WhatsApp reports.
 
 ---
 
-## 🛠️ Tech Stack
+## 📥 How to Setup & Install
 
-| Component | Technology |
-|---|---|
-| **Framework** | Flutter 3.47.5 (Dart 3.13.4) |
-| **State Management** | Flutter Riverpod (`NotifierProvider`) |
-| **Navigation & Routing** | GoRouter 18 with reactive Route Guards |
-| **Backend & Database** | Firebase Cloud Firestore (with Offline Cache) |
-| **Authentication** | Firebase Auth (Google Sign-In) |
-| **Charts & Visuals** | `fl_chart`, `qr_flutter` |
-| **Distribution / Updates** | GitHub Releases API + Android Native Installer |
-| **UI Design System** | Material 3 Flat Design (Dark & Light theme support) |
+Getting started with FleetBoard takes just 2 minutes:
 
----
-
-## 🚀 How to Publish an In-App Update
-
-Whenever you want to release a new version to all users:
-
-1. **Update Version**: Open `pubspec.yaml` and increment the version (e.g. `1.0.1+2`).
-2. **Build Release APK**:
-   ```bash
-   flutter build apk --release
-   ```
-   The generated APK will be at `build/app/outputs/flutter-apk/app-release.apk`.
-3. **Publish on GitHub**:
-   - Go to your repository's **Releases** tab &rarr; **Draft a new release**.
-   - Set **Tag version**: `v1.0.1` (must match the version in `pubspec.yaml`).
-   - Title: `FleetBoard v1.0.1`.
-   - Description: Add what's new (e.g., bug fixes, new features). *(Tip: add `[mandatory]` in the description if you want to require the update).*
-   - **Attach Binary**: Drag and drop `app-release.apk` into the release attachments.
-   - Click **Publish release**.
-4. **Automatic Client Update**:
-   All installed apps will immediately detect the new release on next launch, display the update dialog, download the APK, and prompt to install!
+1. **Download & Install**:
+   - Download the latest `FleetBoard.apk` directly to your Android phone.
+   - Tap to install (allow *"Install from unknown sources"* if prompted).
+2. **Sign In**:
+   - Open FleetBoard and tap **Sign in with Google**.
+   - Review and accept the operational disclaimer.
+3. **Submit Registration & Request Activation**:
+   - Enter your Full Name, Phone Number, and select your role (**Owner** or **Driver**).
+   - On the approval screen, tap **"Send Approval Request via Email"**.
+   - Your Gmail app will open with your details already pre-filled. Simply tap send to `hello@ridatech.in`.
+   - Once activated, open the app to access your full fleet dashboard!
 
 ---
 
-## 🧪 Testing & Verification
+## 📖 How to Use FleetBoard
 
-FleetBoard includes a comprehensive automated test suite covering status logic, fare calculations, report aggregations, route guards, and update parsing:
+### 1. 🚘 Adding & Managing Your Vehicles
+- Go to the **My Cars** tab and tap **+ Add Car**.
+- Enter the vehicle registration number (e.g. `DL 01 AB 1234`), make/model (e.g. *Ertiga*, *Innova*, *Dzire*), and vehicle category (`Hatchback`, `Sedan`, `SUV`, `MUV`).
+- Set your default rental rates (Fixed package fare or Per-KM rate).
+- Mark a car for **Maintenance** anytime with a single toggle when it's in the workshop.
 
-```bash
-# Run all unit and widget tests
-flutter test
+### 2. 🚦 Real-Time Fleet Status
+FleetBoard automatically calculates each car's live status so you always know what is happening:
+- 🟢 **Available**: Ready for a new booking.
+- 🟡 **Reserved**: Booked for an upcoming trip within the next 24 hours.
+- 🔵 **On Trip**: Currently on the road with an ongoing trip.
+- 🔴 **Maintenance**: Temporarily unavailable due to service or repair.
 
-# Run static analysis
-flutter analyze
-```
+### 3. 📅 Customer Bookings & Reservations
+- Tap **New Reservation** from the Home screen or vehicle details.
+- Select start and end date/time, customer name, and contact number.
+- Enter advance payment received and select fare pricing (Fixed Package or Per-Km).
+- The app automatically blocks double-booking for the same car during overlapping time slots.
+
+### 4. 🛣️ Trip Execution & Payment Settlement
+- **Start Trip**: Enter the opening odometer reading and begin the journey.
+- **Add Extra Charges**: Log unexpected tolls, parking, driver night charges, or state taxes during the trip.
+- **Complete Trip**: Enter the closing odometer reading. The app automatically computes extra kilometers, total fare, and balance due.
+- **Instant UPI QR Code**: Generate a dynamic UPI payment QR code containing the exact remaining balance for the customer to scan and pay directly to your account.
+
+### 5. ⛽ Expense Tracking
+- Log all operational costs under **Expenses**: **Fuel, Maintenance, Toll/Fastag, Challan, Insurance, Cleaning, or Other**.
+- Link each expense directly to the relevant car to see which vehicles are most profitable.
+
+### 6. 📊 Monthly Reports & WhatsApp Sharing
+- View monthly summaries of Total Revenue, Total Expenses, and Net Profit.
+- Inspect car-wise breakdown tables showing earnings and mileage per vehicle.
+- Tap **Share via WhatsApp** to generate a clean, professional text summary ready to send to your business partners or accountant.
 
 ---
 
-## 📄 License & Disclaimer
+## 👥 User Roles
 
-FleetBoard is an internal record-keeping and fleet monitoring tool. Vehicle permits, road taxes, passenger safety, and commercial compliance remain the sole responsibility of individual vehicle owners and operators.
+- **Owner**: Full administrative access to add/edit vehicles, manage reservations, view financial records, log expenses, and generate reports.
+- **Driver**: Dedicated view to check assigned vehicle availability, view upcoming trips, and track customer pickup details.
+
+---
+
+## ⚖️ License & Strict Resale Protection
+
+**PROPRIETARY SOFTWARE — ALL RIGHTS RESERVED**  
+**Copyright © 2026 Moksed Alam / Rida Tech (`hello@ridatech.in`)**
+
+> ### ⚠️ STRICT LEGAL WARNING
+> This software, its source code, design assets, and compiled APK binaries are proprietary and protected under intellectual property and copyright laws.
+> 
+> - **NO RESALE**: You are strictly prohibited from selling, reselling, sublicensing, leasing, renting, or charging any fees for this application or its source code.
+> - **NO REDISTRIBUTION**: You may not publish, repackage, or distribute this application on third-party app stores or websites without express prior written permission from the copyright owner.
+> - **NO REVERSE ENGINEERING**: Decompiling, reverse engineering, or extracting proprietary business logic from this application is strictly forbidden.
+> 
+> Violators will be subject to civil liability and criminal prosecution under applicable copyright and commercial protection laws.
+
+For permissions, support, or inquiries, contact:  
+📧 **hello@ridatech.in**
