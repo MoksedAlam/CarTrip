@@ -16,11 +16,11 @@ class PendingApprovalScreen extends ConsumerWidget {
     final phone = user?.phone ?? '';
     final uid = user?.uid ?? '';
 
-    final subject = 'FleetBoard Approval Request - $name ($role)';
+    final subject = 'CarTrip Approval Request - $name ($role)';
     final body = '''
 Hello Team,
 
-I have registered on FleetBoard and would like to request account approval/activation.
+I have registered on CarTrip and would like to request account approval/activation.
 
 My Registration Details:
 -------------------------

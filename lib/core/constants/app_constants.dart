@@ -199,27 +199,27 @@ class ExpenseCategories {
 }
 
 class AppConstants {
-  static const String appName = 'FleetBoard';
+  static const String appName = 'CarTrip';
   static const String appTagline = "Manage your cars. Know every car's status.";
 
   static const int defaultFixedKm = 110;
 
   static const String declarationText =
-      'I confirm that my vehicle(s) hold a valid permit, insurance and fitness certificate, that my drivers hold valid licences, and that I alone am responsible for bookings, payments, taxes and compliance. FleetBoard is only a record-keeping tool.';
+      'I confirm that my vehicle(s) hold a valid permit, insurance and fitness certificate, that my drivers hold valid licences, and that I alone am responsible for bookings, payments, taxes and compliance. CarTrip is only a record-keeping tool.';
 
   static const String disclaimerText =
-      'FleetBoard is a record-keeping and information tool for car owners. It is not a taxi/aggregator service and does not handle bookings from the public, payments, or passengers. Owners are solely responsible for vehicle permits, insurance, driver verification, taxes, passenger safety and all dealings with customers.';
+      'CarTrip is a record-keeping and information tool for car owners. It is not a taxi/aggregator service and does not handle bookings from the public, payments, or passengers. Owners are solely responsible for vehicle permits, insurance, driver verification, taxes, passenger safety and all dealings with customers.';
 
   static const String upiDisclaimerText =
-      'FleetBoard does not collect, hold or transfer money. UPI QR codes are generated from the owner\'s own UPI ID; payments go directly to the owner.';
+      'CarTrip does not collect, hold or transfer money. UPI QR codes are generated from the owner\'s own UPI ID; payments go directly to the owner.';
 
   static const String privacyPolicySummary =
-      'FleetBoard collects your Google account name, email, phone number, and optional UPI ID. Customer and trip details entered by you are private to your account and never shared with other owners or drivers. The public Fleet Board displays only vehicle availability status and vehicle models. You may delete your account and all associated data at any time from Settings.';
+      'CarTrip collects your Google account name, email, phone number, and optional UPI ID. Customer and trip details entered by you are private to your account and never shared with other owners or drivers. The public Fleet Board displays only vehicle availability status and vehicle models. You may delete your account and all associated data at any time from Settings.';
 
   // Support & Contact
   static const String supportEmail = 'hello@ridatech.in';
 
   // GitHub Auto-Update Configuration
   static const String githubOwner = 'MoksedAlam';
-  static const String githubRepo = 'Carboard';
+  static const String githubRepo = 'CarTrip';
 }

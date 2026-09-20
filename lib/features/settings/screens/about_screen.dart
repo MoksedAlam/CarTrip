@@ -33,7 +33,7 @@ class _AboutScreenState extends State<AboutScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('About FleetBoard'),
+        title: Text('About ${AppConstants.appName}'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -71,12 +71,12 @@ class _AboutScreenState extends State<AboutScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'What is FleetBoard?',
+              'What is ${AppConstants.appName}?',
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              'FleetBoard is a modern record-keeping and fleet visibility tool designed for local car owners and operators. It lets you organize your vehicles, track reservations, manage trip fares and expenses, generate UPI payment QR codes, and see real-time availability across local vehicles on a shared board.',
+              '${AppConstants.appName} is a modern record-keeping and car management tool designed for local car owners and operators. It lets you organize your vehicles, track reservations, manage trip fares and expenses, generate UPI payment QR codes, and see real-time availability across local vehicles on a shared board.',
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 20),

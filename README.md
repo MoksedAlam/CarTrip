@@ -1,20 +1,20 @@
-# FleetBoard 🚗📋
+# CarTrip 🚗📋
 
-> **Manage your cars. Know every car's status.**  
-> A complete fleet management and vehicle operations app designed specifically for commercial car owners, tour & travel operators, and drivers.
+> **Manage your cars & trips easily.**  
+> A simple, powerful trip booking and fleet management app designed specifically for commercial car owners, tour & travel operators, and drivers.
 
-[![Download Latest APK](https://img.shields.io/badge/Download_APK-v1.0.0-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/MoksedAlam/Carboard/releases/latest/download/FleetBoard.apk)
-[![Latest Release](https://img.shields.io/badge/Release-v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/MoksedAlam/Carboard/releases/latest)
+[![Download Latest APK](https://img.shields.io/badge/Download_APK-v1.0.0-2ea44f?style=for-the-badge&logo=android&logoColor=white)](https://github.com/MoksedAlam/CarTrip/releases/latest/download/CarTrip.apk)
+[![Latest Release](https://img.shields.io/badge/Release-v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/MoksedAlam/CarTrip/releases/latest)
 
 ---
 
-## 📱 What is FleetBoard?
+## 📱 What is CarTrip?
 
-**FleetBoard** simplifies commercial vehicle tracking and daily business operations into a single, clean mobile app.
+**CarTrip** makes daily car management, trip bookings, and business accounting effortless.
 
-Whether you operate a single car or manage a commercial taxi fleet, FleetBoard gives you:
+Whether you operate 1 car or a fleet of 20 taxis, CarTrip gives you:
 - Complete visibility into vehicle availability in real time.
-- Automated trip scheduling and overlap-free customer bookings.
+- Automated customer trip scheduling with overlap-blocking.
 - Accurate dynamic fare calculation (Fixed Package or Per-Km).
 - Direct-to-bank UPI payment QR code generation for customers.
 - Expense tracking (fuel, maintenance, tolls, challans) per car.
@@ -24,23 +24,23 @@ Whether you operate a single car or manage a commercial taxi fleet, FleetBoard g
 
 ## 📥 How to Setup & Install
 
-Getting started with FleetBoard takes just 2 minutes:
+Getting started with CarTrip takes just 2 minutes:
 
 1. **Download & Install**:
-   - Download the latest `FleetBoard.apk` directly to your Android phone.
+   - Download the latest `CarTrip.apk` directly to your Android phone.
    - Tap to install (allow *"Install from unknown sources"* if prompted).
 2. **Sign In**:
-   - Open FleetBoard and tap **Sign in with Google**.
+   - Open CarTrip and tap **Sign in with Google**.
    - Review and accept the operational disclaimer.
 3. **Submit Registration & Request Activation**:
    - Enter your Full Name, Phone Number, and select your role (**Owner** or **Driver**).
    - On the approval screen, tap **"Send Approval Request via Email"**.
    - Your Gmail app will open with your details already pre-filled. Simply tap send to `hello@ridatech.in`.
-   - Once activated, open the app to access your full fleet dashboard!
+   - Once activated, open the app to access your full car dashboard!
 
 ---
 
-## 📖 How to Use FleetBoard
+## 📖 How to Use CarTrip
 
 ### 1. 🚘 Adding & Managing Your Vehicles
 - Go to the **My Cars** tab and tap **+ Add Car**.
@@ -48,8 +48,8 @@ Getting started with FleetBoard takes just 2 minutes:
 - Set your default rental rates (Fixed package fare or Per-KM rate).
 - Mark a car for **Maintenance** anytime with a single toggle when it's in the workshop.
 
-### 2. 🚦 Real-Time Fleet Status
-FleetBoard automatically calculates each car's live status so you always know what is happening:
+### 2. 🚦 Real-Time Car Status
+CarTrip automatically calculates each car's live status so you always know what is happening:
 - 🟢 **Available**: Ready for a new booking.
 - 🟡 **Reserved**: Booked for an upcoming trip within the next 24 hours.
 - 🔵 **On Trip**: Currently on the road with an ongoing trip.
