@@ -120,16 +120,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('CarTrip Community', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
-            Text(
-              'Owners & Drivers Fleet Group',
-              style: theme.textTheme.labelSmall?.copyWith(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
-            ),
-          ],
-        ),
+        title: const Text('CarTrip Community', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: Icon(isMuted ? Icons.notifications_off_rounded : Icons.notifications_active_rounded),
@@ -145,35 +136,11 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.info_outline_rounded),
-            tooltip: 'Group Rules',
-            onPressed: () => _showGroupRules(context),
-          ),
         ],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Notice banner
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              child: Row(
-                children: [
-                  Icon(Icons.shield_outlined, size: 14, color: theme.colorScheme.primary),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Official Fleet Group • Messages cannot be deleted • Permanent record',
-                      style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
             // Messages Stream
             Expanded(
               child: messagesAsync.when(
@@ -261,7 +228,6 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
 
   Widget _buildMessageBubble(BuildContext context, ChatMessage msg, bool isMe) {
     final theme = Theme.of(context);
-    final isSuperAdmin = msg.senderRole == 'superAdmin';
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -290,34 +256,13 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (!isMe) ...[
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    msg.senderName,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: isSuperAdmin ? Colors.amber.shade800 : theme.colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: (isSuperAdmin ? Colors.amber : theme.colorScheme.secondary).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      msg.senderRole.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w600,
-                        color: isSuperAdmin ? Colors.amber.shade900 : theme.colorScheme.secondary,
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                msg.senderName,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: theme.colorScheme.primary,
+                ),
               ),
               const SizedBox(height: 4),
             ],
@@ -400,39 +345,6 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showGroupRules(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.shield_outlined),
-            SizedBox(width: 8),
-            Text('Community Guidelines'),
-          ],
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('• This is an open group for all registered CarTrip vehicle owners and drivers.'),
-            SizedBox(height: 6),
-            Text('• No private 1-on-1 messaging is allowed to ensure complete transparency.'),
-            SizedBox(height: 6),
-            Text('• Messages cannot be deleted once sent (audit trail maintained).'),
-            SizedBox(height: 6),
-            Text('• Media and links are shared directly without server bloat.'),
-            SizedBox(height: 6),
-            Text('• You can mute notifications anytime from the bell icon.'),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Understood')),
-        ],
       ),
     );
   }

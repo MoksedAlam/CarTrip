@@ -186,6 +186,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: '/owner/console',
+                builder: (context, state) => const ApprovalsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/owner/settings',
                 builder: (context, state) => const SettingsScreen(),
               ),

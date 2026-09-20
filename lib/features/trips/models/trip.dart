@@ -40,6 +40,9 @@ class Trip {
   final String status; // 'reserved' | 'ongoing' | 'completed' | 'cancelled'
   final String? cancelReason;
   final String? notes;
+  final String? givenByOwnerName;
+  final String? givenByOwnerId;
+  final int referralCommission;
   final String monthKey;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -79,6 +82,9 @@ class Trip {
     this.status = TripStatuses.reserved,
     this.cancelReason,
     this.notes,
+    this.givenByOwnerName,
+    this.givenByOwnerId,
+    this.referralCommission = 0,
     required this.monthKey,
     this.createdAt,
     this.updatedAt,
@@ -124,6 +130,9 @@ class Trip {
       'status': status,
       'cancelReason': cancelReason,
       'notes': notes,
+      'givenByOwnerName': givenByOwnerName,
+      'givenByOwnerId': givenByOwnerId,
+      'referralCommission': referralCommission,
       'monthKey': monthKey,
       'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
@@ -187,6 +196,9 @@ class Trip {
       status: map['status'] as String? ?? TripStatuses.reserved,
       cancelReason: map['cancelReason'] as String?,
       notes: map['notes'] as String?,
+      givenByOwnerName: map['givenByOwnerName'] as String?,
+      givenByOwnerId: map['givenByOwnerId'] as String?,
+      referralCommission: (map['referralCommission'] as num?)?.toInt() ?? 0,
       monthKey: map['monthKey'] as String? ?? MonthKey.fromDateTime(actualEndAt ?? startAt),
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate(),

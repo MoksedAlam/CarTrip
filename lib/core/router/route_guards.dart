@@ -43,12 +43,7 @@ class RouteGuards {
       return currentPath == registerPath ? null : registerPath;
     }
 
-    // 5. Status is rejected or disabled only
-    if (userDoc.status == UserStatuses.rejected || userDoc.status == UserStatuses.disabled) {
-      return currentPath == blockedPath ? null : blockedPath;
-    }
-
-    // 6. Role-based routing
+    // 5. Super admin bypasses pending and blocked checks
     if (userDoc.role == UserRoles.superAdmin) {
       // Super admin has full owner capabilities + admin privileges
       if (currentPath.startsWith('/admin') ||
@@ -63,12 +58,28 @@ class RouteGuards {
       return ownerHomePath;
     }
 
+    // 6. Status checks for regular users
+    if (userDoc.status == UserStatuses.rejected || userDoc.status == UserStatuses.disabled) {
+      return currentPath == blockedPath ? null : blockedPath;
+    }
+
+    if (userDoc.status == UserStatuses.pending) {
+      return currentPath == pendingPath ? null : pendingPath;
+    }
+
+    // 7. Role-based routing
     if (userDoc.role == UserRoles.driver) {
       // Driver can access driver routes and settings
       if (currentPath.startsWith('/driver') || currentPath.startsWith('/settings')) {
         return null;
       }
       return driverFleetPath;
+    }
+
+    // Regular owners cannot access admin console
+    if (userDoc.role != UserRoles.superAdmin &&
+        (currentPath.startsWith('/admin') || currentPath.startsWith('/owner/console'))) {
+      return ownerHomePath;
     }
 
     // Default for all owners and general users: direct access to owner home

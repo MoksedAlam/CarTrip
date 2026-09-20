@@ -55,6 +55,10 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
     _selectedCarId = widget.initialCarId;
   }
 
+  final _givenByOwnerController = TextEditingController();
+  final _commissionController = TextEditingController();
+  bool _isReferredByOwner = false;
+
   @override
   void dispose() {
     _customerNameController.dispose();
@@ -64,6 +68,8 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
     _estimatedKmController.dispose();
     _advanceController.dispose();
     _notesController.dispose();
+    _givenByOwnerController.dispose();
+    _commissionController.dispose();
     super.dispose();
   }
 
@@ -239,6 +245,10 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
             : (advance > 0 ? PaymentStatuses.partial : PaymentStatuses.unpaid),
         status: TripStatuses.reserved,
         notes: _notesController.text.trim().isNotEmpty ? _notesController.text.trim() : null,
+        givenByOwnerName: _isReferredByOwner && _givenByOwnerController.text.trim().isNotEmpty
+            ? _givenByOwnerController.text.trim()
+            : 'Direct Customer',
+        referralCommission: int.tryParse(_commissionController.text.trim()) ?? 0,
         monthKey: MonthKey.fromDateTime(_startDateTime),
       );
 
@@ -359,6 +369,54 @@ class _ReservationFormScreenState extends ConsumerState<ReservationFormScreen> {
                       validator: Validators.phone,
                       prefix: const Icon(Icons.phone_outlined),
                     ),
+
+                    const Divider(height: 32),
+
+                    // Bhada Source / Referral
+                    Text('Bhada / Referral Source (भाड़ा किसने दिया)', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 10),
+                    SegmentedButton<bool>(
+                      segments: const [
+                        ButtonSegment<bool>(
+                          value: false,
+                          label: Text('Direct Customer'),
+                          icon: Icon(Icons.person_rounded),
+                        ),
+                        ButtonSegment<bool>(
+                          value: true,
+                          label: Text('Dusre Owner Ne Diya'),
+                          icon: Icon(Icons.handshake_rounded),
+                        ),
+                      ],
+                      selected: {_isReferredByOwner},
+                      onSelectionChanged: (set) {
+                        setState(() => _isReferredByOwner = set.first);
+                      },
+                    ),
+                    if (_isReferredByOwner) ...[
+                      const SizedBox(height: 12),
+                      AppTextField(
+                        controller: _givenByOwnerController,
+                        label: 'Owner Name (Kisne Bhada Diya) *',
+                        hint: 'e.g. Ramesh Bhai, Rida Alam',
+                        prefix: const Icon(Icons.badge_outlined),
+                        textCapitalization: TextCapitalization.words,
+                        validator: (v) {
+                          if (_isReferredByOwner && (v == null || v.trim().isEmpty)) {
+                            return 'Owner name is required';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      AppTextField(
+                        controller: _commissionController,
+                        label: 'Referral / Commission Amount (Optional ₹)',
+                        hint: '0',
+                        keyboardType: TextInputType.number,
+                        prefix: const Icon(Icons.currency_rupee_rounded),
+                      ),
+                    ],
 
                     const Divider(height: 32),
 

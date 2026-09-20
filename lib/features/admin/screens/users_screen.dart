@@ -13,14 +13,28 @@ final allUsersProvider = StreamProvider<List<AppUser>>((ref) {
   return adminRepo.watchAllUsers();
 });
 
-class UsersScreen extends ConsumerStatefulWidget {
+class UsersScreen extends StatelessWidget {
   const UsersScreen({super.key});
 
   @override
-  ConsumerState<UsersScreen> createState() => _UsersScreenState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User Management'),
+      ),
+      body: const UsersScreenBody(),
+    );
+  }
 }
 
-class _UsersScreenState extends ConsumerState<UsersScreen> {
+class UsersScreenBody extends ConsumerStatefulWidget {
+  const UsersScreenBody({super.key});
+
+  @override
+  ConsumerState<UsersScreenBody> createState() => _UsersScreenBodyState();
+}
+
+class _UsersScreenBodyState extends ConsumerState<UsersScreenBody> {
   String _searchQuery = '';
 
   void _showEditUserDialog(AppUser user) {
@@ -64,8 +78,8 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                 items: [
                   UserStatuses.active,
                   UserStatuses.pending,
-                  UserStatuses.disabled,
                   UserStatuses.rejected,
+                  UserStatuses.disabled,
                 ].map((status) {
                   return DropdownMenuItem(value: status, child: Text(status.toUpperCase()));
                 }).toList(),
@@ -116,78 +130,83 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
   Widget build(BuildContext context) {
     final usersAsync = ref.watch(allUsersProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Management'),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'Search by name, email or phone...',
-                prefixIcon: Icon(Icons.search_rounded),
-              ),
-              onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: TextField(
+            decoration: const InputDecoration(
+              hintText: 'Search by name, email or phone...',
+              prefixIcon: Icon(Icons.search_rounded),
             ),
+            onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
           ),
-          Expanded(
-            child: usersAsync.when(
-              loading: () => const LoadingView(message: 'Loading users...'),
-              error: (err, _) => ErrorView(
-                message: err.toString(),
-                onRetry: () => ref.invalidate(allUsersProvider),
-              ),
-              data: (users) {
-                final filtered = users.where((u) {
-                  if (_searchQuery.isEmpty) return true;
-                  return u.name.toLowerCase().contains(_searchQuery) ||
-                      u.email.toLowerCase().contains(_searchQuery) ||
-                      u.phone.toLowerCase().contains(_searchQuery);
-                }).toList();
+        ),
+        Expanded(
+          child: usersAsync.when(
+            loading: () => const LoadingView(message: 'Loading users...'),
+            error: (err, _) => ErrorView(
+              message: err.toString(),
+              onRetry: () => ref.invalidate(allUsersProvider),
+            ),
+            data: (users) {
+              final filteredUsers = users.where((u) {
+                if (_searchQuery.isEmpty) return true;
+                final matchName = u.name.toLowerCase().contains(_searchQuery);
+                final matchEmail = u.email.toLowerCase().contains(_searchQuery);
+                final matchPhone = u.phone.toLowerCase().contains(_searchQuery);
+                return matchName || matchEmail || matchPhone;
+              }).toList();
 
-                if (filtered.isEmpty) {
-                  return const EmptyState(
-                    icon: Icons.person_off_rounded,
-                    title: 'No users found',
-                    description: 'Try adjusting your search query.',
-                  );
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: filtered.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (ctx, idx) {
-                    final user = filtered[idx];
-                    return Card(
-                      child: ListTile(
-                        title: Text(user.name.isNotEmpty ? user.name : 'No Name'),
-                        subtitle: Text('${user.email}\nPhone: ${user.phone.isNotEmpty ? user.phone : "-"} • Area: ${user.area.isNotEmpty ? user.area : "-"}'),
-                        isThreeLine: true,
-                        trailing: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            StatusChip(status: user.status),
-                            const SizedBox(height: 4),
-                            Text(
-                              user.role.toUpperCase(),
-                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        onTap: () => _showEditUserDialog(user),
-                      ),
-                    );
-                  },
+              if (filteredUsers.isEmpty) {
+                return const EmptyState(
+                  icon: Icons.people_outline_rounded,
+                  title: 'No users found',
                 );
-              },
-            ),
+              }
+
+              return ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: filteredUsers.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
+                itemBuilder: (ctx, idx) {
+                  final user = filteredUsers[idx];
+                  final isSuperAdmin = user.role == UserRoles.superAdmin;
+
+                  return Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        child: Text(user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U'),
+                      ),
+                      title: Text(
+                        user.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text('${user.email}\nPhone: ${user.phone.isNotEmpty ? user.phone : "N/A"}'),
+                      isThreeLine: true,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          StatusChip(
+                            status: isSuperAdmin ? 'Reserved' : 'Available',
+                            label: user.role.toUpperCase(),
+                          ),
+                          const SizedBox(width: 8),
+                          StatusChip(
+                            status: user.status == UserStatuses.active ? 'Available' : 'Cancelled',
+                            label: user.status.toUpperCase(),
+                          ),
+                        ],
+                      ),
+                      onTap: () => _showEditUserDialog(user),
+                    ),
+                  );
+                },
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

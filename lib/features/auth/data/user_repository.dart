@@ -61,7 +61,7 @@ class UserRepository {
       'area': area.trim(),
       'upiId': (upiId != null && upiId.trim().isNotEmpty) ? upiId.trim() : null,
       'role': UserRoles.owner,
-      'status': UserStatuses.active,
+      'status': UserStatuses.pending,
       'registrationSubmitted': true,
       'declarationAccepted': true,
       'declarationAt': Timestamp.fromDate(now),

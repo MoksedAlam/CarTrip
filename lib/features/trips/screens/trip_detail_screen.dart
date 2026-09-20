@@ -235,7 +235,28 @@ class TripDetailScreen extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                // Bhada Referral Card (Kisne Bhada Diya)
+                if (trip.givenByOwnerName != null && trip.givenByOwnerName!.isNotEmpty) ...[
+                  Card(
+                    elevation: 0,
+                    color: Colors.indigo.withValues(alpha: 0.08),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.indigo.withValues(alpha: 0.3)),
+                    ),
+                    child: ListTile(
+                      leading: const Icon(Icons.handshake_rounded, color: Colors.indigo),
+                      title: Text(
+                        'Bhada Diya: ${trip.givenByOwnerName}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.indigo),
+                      ),
+                      subtitle: trip.referralCommission > 0
+                          ? Text('Commission / Share: ₹${trip.referralCommission}')
+                          : const Text('Partner Owner Referral Booking'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
 
                 // Customer Contact Card
                 Card(

@@ -36,7 +36,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {});
     });
@@ -113,6 +113,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
           tabs: const [
             Tab(text: 'Trips'),
             Tab(text: 'Expenses'),
+            Tab(text: 'Bhada Khata'),
           ],
         ),
       ),
@@ -348,19 +349,28 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
               ),
             ],
           ),
+
+          // 3. Bhada Khata Tab (भाड़ा लेन-देन & Ranking)
+          tripsAsync.when(
+            loading: () => const LoadingView(message: 'Loading Bhada records...'),
+            error: (err, _) => ErrorView(message: err.toString()),
+            data: (trips) => _buildBhadaKhataTab(trips),
+          ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        icon: const Icon(Icons.add_rounded),
-        label: Text(_tabController.index == 0 ? 'New Reservation' : 'Add Expense'),
-        onPressed: () {
-          if (_tabController.index == 0) {
-            context.push('/trips/new');
-          } else {
-            context.push('/expenses/new');
-          }
-        },
-      ),
+      floatingActionButton: _tabController.index == 2
+          ? null
+          : FloatingActionButton.extended(
+              icon: const Icon(Icons.add_rounded),
+              label: Text(_tabController.index == 0 ? 'New Reservation' : 'Add Expense'),
+              onPressed: () {
+                if (_tabController.index == 0) {
+                  context.push('/trips/new');
+                } else {
+                  context.push('/expenses/new');
+                }
+              },
+            ),
     );
   }
 
@@ -398,9 +408,42 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
                 ],
               ),
               const SizedBox(height: 8),
-              Text(
-                trip.customerName,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      trip.customerName,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ),
+                  if (trip.givenByOwnerName != null &&
+                      trip.givenByOwnerName!.isNotEmpty &&
+                      trip.givenByOwnerName != 'Direct Customer')
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.indigo.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.handshake_rounded, size: 12, color: Colors.indigo),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Bhada: ${trip.givenByOwnerName}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.indigo,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(height: 6),
               Row(
@@ -452,6 +495,243 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBhadaKhataTab(List<Trip> trips) {
+    final theme = Theme.of(context);
+    final partnerTrips = trips
+        .where((t) =>
+            t.givenByOwnerName != null &&
+            t.givenByOwnerName != 'Direct Customer' &&
+            t.givenByOwnerName!.trim().isNotEmpty)
+        .toList();
+
+    // Group by owner
+    final Map<String, List<Trip>> byOwner = {};
+    for (final t in partnerTrips) {
+      final name = t.givenByOwnerName!.trim();
+      byOwner.putIfAbsent(name, () => []).add(t);
+    }
+
+    final sortedOwners = byOwner.keys.toList()
+      ..sort((a, b) => byOwner[b]!.length.compareTo(byOwner[a]!.length));
+
+    final totalPartnerTrips = partnerTrips.length;
+    final totalPartnerRevenue = partnerTrips.fold<int>(0, (sum, t) => sum + t.totalFare);
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Summary Cards
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.indigo.shade700, Colors.blue.shade600],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.handshake_rounded, color: Colors.white, size: 18),
+                        SizedBox(width: 6),
+                        Text('Shared Bookings', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '$totalPartnerTrips Trips',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.teal.shade700, Colors.green.shade600],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.currency_rupee_rounded, color: Colors.white, size: 18),
+                        SizedBox(width: 6),
+                        Text('Total Bhada Value', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      Formatters.currency(totalPartnerRevenue),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 20),
+
+        Row(
+          children: [
+            const Icon(Icons.leaderboard_rounded, color: Colors.amber, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'Bhada Distribution (Kisne Kitna Bhada Diya)',
+              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        if (sortedOwners.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: EmptyState(
+              icon: Icons.handshake_outlined,
+              title: 'No Partner Bhada Records Yet',
+              description:
+                  'When reserving a car, select "Dusre Owner Ne Diya" to record partner bookings and rental referrals.',
+            ),
+          )
+        else
+          ...sortedOwners.asMap().entries.map((entry) {
+            final rank = entry.key + 1;
+            final owner = entry.value;
+            final ownerTrips = byOwner[owner]!;
+            final ownerTotalFare = ownerTrips.fold<int>(0, (sum, t) => sum + t.totalFare);
+
+            String medal = '#$rank';
+            if (rank == 1) medal = '🥇 #1';
+            if (rank == 2) medal = '🥈 #2';
+            if (rank == 3) medal = '🥉 #3';
+
+            return Card(
+              margin: const EdgeInsets.only(bottom: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: rank == 1 ? Colors.amber.withValues(alpha: 0.6) : theme.colorScheme.outlineVariant,
+                ),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: rank == 1 ? Colors.amber.shade100 : theme.colorScheme.primaryContainer,
+                  child: Text(
+                    medal,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: rank == 1 ? Colors.amber.shade900 : theme.colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+                title: Text(
+                  owner,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text('${ownerTrips.length} Bookings • Total Value: ${Formatters.currency(ownerTotalFare)}'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _showOwnerTripsSheet(context, owner, ownerTrips),
+              ),
+            );
+          }),
+      ],
+    );
+  }
+
+  void _showOwnerTripsSheet(BuildContext context, String ownerName, List<Trip> trips) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        final totalValue = trips.fold<int>(0, (sum, t) => sum + t.totalFare);
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.92,
+          expand: false,
+          builder: (_, controller) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.handshake_rounded, color: Colors.indigo),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Bhada by: $ownerName',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            Text(
+                              '${trips.length} Trips • Total: ${Formatters.currency(totalValue)}',
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView.separated(
+                    controller: controller,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: trips.length,
+                    separatorBuilder: (_, index) => const SizedBox(height: 8),
+                    itemBuilder: (ctx, idx) {
+                      final t = trips[idx];
+                      return Card(
+                        child: ListTile(
+                          title: Text(
+                            '${t.carNumber} • ${t.customerName}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text('${t.pickupLocation} → ${t.destination}\n${Formatters.date(t.startAt)}'),
+                          trailing: Text(
+                            Formatters.currency(t.totalFare),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          onTap: () {
+                            Navigator.of(ctx).pop();
+                            context.push('/trips/${t.id}');
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
